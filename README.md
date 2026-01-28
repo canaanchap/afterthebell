@@ -1,2 +1,2 @@
 # afterthebell
-In pursuit of the Ringer; the codes of Resonara
+In pursuit of the Ringer; the codex of Resonara.
