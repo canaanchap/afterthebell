@@ -1,5 +1,7 @@
 <?php
 declare(strict_types=1);
+error_reporting(E_ALL & ~E_DEPRECATED);
+ini_set('display_errors', '0');
 
 require __DIR__ . '/Parsedown.php';
 
@@ -201,4 +203,6 @@ file_put_contents($tmpHome, "Title: $homeTitle\nDate: $homeDate\n\n" . $homeBody
 render_page($md, $tmpHome, $OUT . "/index.html");
 unlink($tmpHome);
 
-echo "Built " . count($posts) . " posts.\n";
+// OLD:
+// echo "Built " . count($posts) . " posts.\n";
+fwrite(STDERR, "Built " . count($posts) . " posts.\n");
