@@ -1,4 +1,6 @@
-<?php function genheader($title, $date) { ?>
+/* <?php function genheader($title, $date) { ?> */
+<title><?php echo htmlspecialchars($title, ENT_QUOTES); ?></title>
+
 <html>
 <head>
   <link rel="alternate" type="application/rss+xml"  title="RSS Feed for fabiensanglard.net" href="/rss.xml" />

@@ -191,12 +191,15 @@ $homePath = $CONTENT . '/index.md';
 $homeMd = file_exists($homePath) ? file_get_contents($homePath) : "Title: Home\nDate: \n\n";
 [$homeTitle, $homeDate, $homeBody] = parse_meta($homeMd);
 
-$listMd = "\n\n<div class='heading'>Writing</div><hr/>\n\n";
+$listHtml = "\n<div class='heading'>Writing</div><hr/>\n<ul>\n";
 foreach ($indexItems as $it) {
-  $date = $it['date'] ? $it['date'] . " — " : "";
-  $listMd .= "- {$date}[{$it['title']}](/posts/{$it['slug']}/)\n";
+  $date = $it['date'] ? htmlspecialchars($it['date'], ENT_QUOTES) . " — " : "";
+  $title = htmlspecialchars($it['title'], ENT_QUOTES);
+  $slug = htmlspecialchars($it['slug'], ENT_QUOTES);
+  $listHtml .= "<li>{$date}<a href=\"/posts/{$slug}/\">{$title}</a></li>\n";
 }
-$homeBody .= "\n" . $listMd;
+$listHtml .= "</ul>\n";
+$homeBody .= "\n" . $listHtml;
 
 $tmpHome = $ROOT . '/build/__home_tmp.md';
 file_put_contents($tmpHome, "Title: $homeTitle\nDate: $homeDate\n\n" . $homeBody);
