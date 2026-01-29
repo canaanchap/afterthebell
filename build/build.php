@@ -196,7 +196,7 @@ foreach ($indexItems as $it) {
   $date = $it['date'] ? htmlspecialchars($it['date'], ENT_QUOTES) . " — " : "";
   $title = htmlspecialchars($it['title'], ENT_QUOTES);
   $slug = htmlspecialchars($it['slug'], ENT_QUOTES);
-  $listHtml .= "<li>{$date}<a href=\"/posts/{$slug}/\">{$title}</a></li>\n";
+$listHtml .= "<li>{$date}<a href=\"posts/{$slug}/\">{$title}</a></li>\n";
 }
 $listHtml .= "</ul>\n";
 $homeBody .= "\n" . $listHtml;
