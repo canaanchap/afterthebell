@@ -1,0 +1,48 @@
+name: Build & Deploy
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+      # setup-php is the standard GH Action for PHP environments  [oai_citation:8‡GitHub](https://github.com/shivammathur/setup-php?utm_source=chatgpt.com)
+
+      - name: Build site
+        run: php build/build.php
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./site
+      # upload-pages-artifact is the official Pages artifact packager  [oai_citation:9‡GitHub](https://github.com/actions/upload-pages-artifact?utm_source=chatgpt.com)
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
+      # deploy-pages deploys the uploaded artifact  [oai_citation:10‡GitHub](https://github.com/actions/deploy-pages?utm_source=chatgpt.com)
