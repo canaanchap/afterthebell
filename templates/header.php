@@ -122,7 +122,8 @@
 <a class="title" href="/about">ABOUT</a> &nbsp;<a class="title" href="/contact/index.html">EMAIL</a> &nbsp;<a class="title" href="../rss.xml">RSS</a> &nbsp;<a class="title" href="https://paypal.me/fabiensanglard">DONATE</a></div></div>
 </center><br><br>
 <div style="margin-bottom: 2ch;text-transform: none;">
-<?echo $date;?>
+<?php echo $date; ?>
 </div>
-<?h($title);?>
-<?} ?>
+
+<div class='heading'><?php echo htmlspecialchars($title, ENT_QUOTES); ?></div><hr/>
+<?php } ?>
