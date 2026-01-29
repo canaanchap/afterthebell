@@ -177,7 +177,7 @@ $indexItems = [];
 
 foreach ($posts as $p) {
   $slug = basename($p, '.md');
-  [$t, $d] = render_page($md, $p, $OUT . "/posts/$slug/index.html");
+  [$t, $d] = render_page($md, $p, $OUT . "posts/$slug/index.html");
   $indexItems[] = ['slug' => $slug, 'title' => $t, 'date' => $d];
 }
 
