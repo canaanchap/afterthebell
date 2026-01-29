@@ -1,5 +1,4 @@
-<?php function genheader($title, $date) { ?>
-<title><?php echo htmlspecialchars($title, ENT_QUOTES); ?></title>
+<title>Home</title>
 
 <html>
 <head>
@@ -114,7 +113,7 @@
   }
 
   </style>
-  <title><?php echo htmlspecialchars($title, ENT_QUOTES); ?></title>
+  <title>Home</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=12.0, minimum-scale=1.0, user-scalable=yes">
 </head>  
   <body><br><center>
@@ -128,8 +127,11 @@
   <a class="title" href="./rss.xml">RSS</a>
 </div></center><br><br>
 <div style="margin-bottom: 2ch;text-transform: none;">
-<?php echo $date; ?>
 </div>
 
-<div class='heading'><?php echo htmlspecialchars($title, ENT_QUOTES); ?></div><hr/>
-<?php } ?>
+<div class='heading'>Home</div><hr/>
+<div class='heading'>Writing</div><hr/>
+<ul>
+<li>2026-01-28 — <a href="/posts/2026-01-28-hello/">Hello, world</a></li>
+</ul></body>
+</html>
