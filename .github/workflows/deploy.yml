@@ -33,6 +33,13 @@ jobs:
       - name: Build site
         run: php build/build.php
 
+      - name: Debug output
+        run: |
+          echo "=== content/posts ==="
+          ls -la content/posts || true
+          echo "=== site tree ==="
+          find site -maxdepth 4 -type f -print
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:
