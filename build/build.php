@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+
 error_reporting(E_ALL & ~E_DEPRECATED);
 ini_set('display_errors', '0');
 
@@ -11,8 +12,7 @@ $TEMPLATES = $ROOT . '/templates';
 $ASSETS = $ROOT . '/assets';
 $OUT = $ROOT . '/site';
 
-require $TEMPLATES . '/header.php';
-require $TEMPLATES . '/footer.php';
+require $TEMPLATES . '/header.php'; // defines genheader()
 
 $md = new Parsedown();
 $md->setSafeMode(false); // allow inline HTML in markdown (useful for “Fabien-style” control)
@@ -150,10 +150,12 @@ function render_page(Parsedown $md, string $srcPath, string $dstPath): array {
   @mkdir(dirname($dstPath), 0777, true);
 
   ob_start();
-  // your header.php should define genheader($title, $date)
   genheader($title, $date);
   echo $bodyHtml;
+
+  // IMPORTANT: include footer only when rendering a page (do NOT require it at startup)
   include __DIR__ . '/../templates/footer.php';
+
   $final = ob_get_clean();
 
   file_put_contents($dstPath, $final);
@@ -177,13 +179,18 @@ $indexItems = [];
 
 foreach ($posts as $p) {
   $slug = basename($p, '.md');
-  [$t, $d] = render_page($md, $p, $OUT . "posts/$slug/index.html");
+  [$t, $d] = render_page($md, $p, $OUT . "/posts/$slug/index.html");
   $indexItems[] = ['slug' => $slug, 'title' => $t, 'date' => $d];
 }
 
-// newest first (by Date line; missing dates sort last)
+// newest first (YYYY-MM-DD sorts correctly as strings; missing dates last)
 usort($indexItems, function($a, $b) {
-  return strcmp($b['date'] ?? '', $a['date'] ?? '');
+  $ad = $a['date'] ?? '';
+  $bd = $b['date'] ?? '';
+  if ($ad === $bd) return 0;
+  if ($ad === '') return 1;
+  if ($bd === '') return -1;
+  return strcmp($bd, $ad);
 });
 
 // Build home page from content/index.md + auto list
@@ -196,7 +203,9 @@ foreach ($indexItems as $it) {
   $date = $it['date'] ? htmlspecialchars($it['date'], ENT_QUOTES) . " — " : "";
   $title = htmlspecialchars($it['title'], ENT_QUOTES);
   $slug = htmlspecialchars($it['slug'], ENT_QUOTES);
-$listHtml .= "<li>{$date}<a href=\"posts/{$slug}/\">{$title}</a></li>\n";
+
+  // RELATIVE link (no leading slash) so GitHub project sites work under /afterthebell/
+  $listHtml .= "<li>{$date}<a href=\"posts/{$slug}/\">{$title}</a></li>\n";
 }
 $listHtml .= "</ul>\n";
 $homeBody .= "\n" . $listHtml;
@@ -206,6 +215,4 @@ file_put_contents($tmpHome, "Title: $homeTitle\nDate: $homeDate\n\n" . $homeBody
 render_page($md, $tmpHome, $OUT . "/index.html");
 unlink($tmpHome);
 
-// OLD:
-// echo "Built " . count($posts) . " posts.\n";
 fwrite(STDERR, "Built " . count($posts) . " posts.\n");
