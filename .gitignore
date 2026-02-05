@@ -3,3 +3,6 @@
 
 # generated site output
 /site/
+# Quartz
+quartz/node_modules/
+quartz/public/

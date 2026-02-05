@@ -1,0 +1,42 @@
+@use "./base.scss";
+
+/* quartz/styles/custom.scss */
+
+/* tighter, cleaner overall rhythm */
+:root {
+  --content-max-width: 820px;
+}
+
+/* make the center column feel like “notes on paper” without being precious */
+.page {
+  line-height: 1.6;
+}
+
+article {
+  max-width: var(--content-max-width);
+}
+
+/* calmer headings */
+article h1, article h2, article h3 {
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+/* links: more understated but obvious on hover */
+a.internal, a.external {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.15em;
+}
+a.internal:hover, a.external:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* images: a little polish */
+article img {
+  border-radius: 10px;
+}
+
+/* OPTIONAL safety net if comments ever sneak back in */
+.giscus, .comments, #giscus-container {
+  display: none !important;
+}
