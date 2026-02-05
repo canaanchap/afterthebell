@@ -1,22 +1,22 @@
 import { PageLayout, SharedLayout } from "./quartz/cfg"
-import * as Component from "./quartz/components"
+import * as Component from "./quartz/components";
 
 // components shared across all pages
 export const sharedPageComponents: SharedLayout = {
   head: Component.Head(),
   header: [],
-  afterBody: [],
+afterBody: [
+  Component.RecentNotes({
+    title: "Latest Chronicle entries",
+    limit: 5,
+    filter: (f) => (f.slug ?? "").startsWith("posts/"),
+  }),
+],
   footer: Component.Footer({
     links: {
       GitHub: "https://github.com/jackyzha0/quartz",
       "Discord Community": "https://discord.gg/cRFFHYye7t",
     },
-  Component.RecentNotes({
-  title: "Latest Chronicle entries",
-  limit: 5,
-  linkToMore: "posts/",
-  filter: (f) => f.slug?.startsWith("posts/"), // only things in content/posts/
-})
   }),
 }
 
