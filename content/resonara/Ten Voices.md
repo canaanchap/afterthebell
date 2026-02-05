@@ -1,0 +1,1 @@
+According to creation texts, the Ten Voices answered the [[First Ringing]]. These voices became the foundation of the [[calendar]], each of the ten [[Month]]s honors one of these primordial responders.
