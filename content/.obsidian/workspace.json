@@ -1,42 +1,24 @@
 {
   "main": {
-    "id": "26929124a389d6f9",
+    "id": "2b660c886364e576",
     "type": "split",
     "children": [
       {
-        "id": "eaf0172ad587a155",
+        "id": "ac903f78ff67f425",
         "type": "tabs",
-        "dimension": 76.07655502392345,
         "children": [
           {
-            "id": "d1e29416ed325b69",
+            "id": "fa5155cb422f520b",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Ten Voices.md",
+                "file": "posts.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Ten Voices"
-            }
-          }
-        ]
-      },
-      {
-        "id": "e2869809e8667bec",
-        "type": "tabs",
-        "dimension": 23.923444976076556,
-        "children": [
-          {
-            "id": "567b7f14ea53e630",
-            "type": "leaf",
-            "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Graph view"
+              "title": "posts"
             }
           }
         ]
@@ -45,15 +27,15 @@
     "direction": "vertical"
   },
   "left": {
-    "id": "167ac71c256a6088",
+    "id": "e64817a144109d8c",
     "type": "split",
     "children": [
       {
-        "id": "9c5305d7e163a321",
+        "id": "0ebd9a5383652bd8",
         "type": "tabs",
         "children": [
           {
-            "id": "62b11b1eddd82c00",
+            "id": "8cbea1b70f44ffd8",
             "type": "leaf",
             "state": {
               "type": "file-explorer",
@@ -66,7 +48,7 @@
             }
           },
           {
-            "id": "0cd3f2ce88bbddb7",
+            "id": "c5689c7ada361237",
             "type": "leaf",
             "state": {
               "type": "search",
@@ -83,7 +65,7 @@
             }
           },
           {
-            "id": "bd825459b92f9073",
+            "id": "36f23d9303911b29",
             "type": "leaf",
             "state": {
               "type": "bookmarks",
@@ -96,23 +78,23 @@
       }
     ],
     "direction": "horizontal",
-    "width": 200
+    "width": 300
   },
   "right": {
-    "id": "8a6bf97ca57464ac",
+    "id": "8d4f465fb6145574",
     "type": "split",
     "children": [
       {
-        "id": "3a5adfeaf66de68a",
+        "id": "7f0d4b18d2d918fd",
         "type": "tabs",
         "children": [
           {
-            "id": "3eb5a5e5fa8ea991",
+            "id": "98526034f1d4b08f",
             "type": "leaf",
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Ten Voices.md",
+                "file": "posts.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -122,25 +104,25 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for Ten Voices"
+              "title": "Backlinks for posts"
             }
           },
           {
-            "id": "611591b0c9909b34",
+            "id": "98a5bf8de46d442f",
             "type": "leaf",
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Ten Voices.md",
+                "file": "posts.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from Ten Voices"
+              "title": "Outgoing links from posts"
             }
           },
           {
-            "id": "f18b89d76a1b3e07",
+            "id": "e7bbf96aa7f15da5",
             "type": "leaf",
             "state": {
               "type": "tag",
@@ -155,7 +137,7 @@
             }
           },
           {
-            "id": "a8d9fec6b1ac2de0",
+            "id": "f0aa090a31580c33",
             "type": "leaf",
             "state": {
               "type": "all-properties",
@@ -169,18 +151,18 @@
             }
           },
           {
-            "id": "86f22ef870da9657",
+            "id": "818ac5248e78adee",
             "type": "leaf",
             "state": {
               "type": "outline",
               "state": {
-                "file": "Ten Voices.md",
+                "file": "posts.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of Ten Voices"
+              "title": "Outline of posts"
             }
           }
         ]
@@ -201,12 +183,43 @@
       "bases:Create new base": false
     }
   },
-  "active": "d1e29416ed325b69",
+  "active": "fa5155cb422f520b",
   "lastOpenFiles": [
-    "Season.md",
-    "Resonara.md",
-    "Month.md",
-    "Ten Voices.md",
-    "Primen.md"
+    "index.md",
+    "Resonara/Resonara/Resonara.md",
+    "posts.md",
+    "Resonara/Time/Months/Verdane.md",
+    "Resonara/Time/Months/Seravene.md",
+    "Resonara/Time/Months/Rhovan.md",
+    "Resonara/Time/Months/Primen.md",
+    "Resonara/Time/Months/Month.md",
+    "Resonara/Time/Months/Meylis.md",
+    "Resonara/Time/Months/Meridane.md",
+    "Resonara/Time/Months/Harkan.md",
+    "Resonara/Time/Months/Greymark.md",
+    "Resonara/Time/Months/Dirgesong.md",
+    "Resonara/Time/Months/Avenyl.md",
+    "Resonara/Time/Season.md",
+    "Resonara/Time/Months",
+    "Resonara/Resonara/History.md",
+    "Resonara/Culture/Observances",
+    "Resonara/Belief/Ten Voices.md",
+    "Resonara/Time",
+    "Resonara/Resonara",
+    "Resonara/Events",
+    "Resonara/Culture",
+    "Resonara/Belief",
+    "Resonara",
+    "New Folder With Items/Time/Months/Verdane.md",
+    "New Folder With Items/Time/Months/Primen.md",
+    "New Folder With Items/Time/Months/Seravene.md",
+    "New Folder With Items/Time/Months/Rhovan.md",
+    "New Folder With Items/Time/Months/Month.md",
+    "New Folder With Items/Time/Months/Meylis.md",
+    "New Folder With Items/Time/Months/Meridane.md",
+    "New Folder With Items/Time/Months/Harkan.md",
+    "New Folder With Items/Time/Months/Dirgesong.md",
+    "New Folder With Items/Time/Months",
+    "New Folder With Items/Culture/Observances"
   ]
 }

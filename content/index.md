@@ -1,6 +1,5 @@
 ---
-title: Archive
+title: Resonara
 ---
 
-- [[posts/]]
-- [[tags/]]
+![[resonara/Resonara]]
