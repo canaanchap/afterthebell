@@ -11,30 +11,32 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "pages"
+  group: pages
   cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name: Install Dependencies (Quartz)
+      - name: Install deps (Quartz)
         working-directory: quartz
         run: npm ci
 
-      - name: Build Quartz into /public/archive
+      - name: Build Quartz into public/archive
         working-directory: quartz
         run: npx quartz build -o ../public/archive
 
-      - name: Copy belltower into /public/belltower
+      - name: Copy belltower into public/belltower
         run: |
           mkdir -p public/belltower
           rsync -a --delete belltower/ public/belltower/
@@ -70,10 +72,10 @@ jobs:
 
   deploy:
     needs: build
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
