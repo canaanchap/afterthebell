@@ -2,4 +2,4 @@
 title: Resonara
 ---
 
-![[resonara/Resonara]]
+![[Resonara/Resonara/Resonara]]

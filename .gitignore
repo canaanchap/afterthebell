@@ -3,6 +3,9 @@
 
 # generated site output
 /site/
+
 # Quartz
 quartz/node_modules/
 quartz/public/
+content/.obsidian/
+content/**/.DS_Store
