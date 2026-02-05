@@ -26,18 +26,20 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install Dependencies
+      - name: Install Dependencies (Quartz)
+        working-directory: quartz
         run: npm ci
 
       - name: Build Quartz into /public/archive
-        run: npx quartz build -o public/archive
+        working-directory: quartz
+        run: npx quartz build -o ../public/archive
 
       - name: Copy belltower into /public/belltower
         run: |
           mkdir -p public/belltower
           rsync -a --delete belltower/ public/belltower/
 
-      - name: Create a tiny landing page at /
+      - name: Root landing page
         run: |
           cat > public/index.html <<'EOF'
           <!doctype html>
@@ -45,14 +47,14 @@ jobs:
             <head>
               <meta charset="utf-8" />
               <meta name="viewport" content="width=device-width,initial-scale=1" />
-              <title>Project</title>
+              <title>After the Bell</title>
               <style>
                 body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:760px;margin:48px auto;padding:0 16px;line-height:1.5}
                 a{display:inline-block;margin-right:16px}
               </style>
             </head>
             <body>
-              <h1>Project</h1>
+              <h1>After the Bell</h1>
               <p>
                 <a href="./belltower/">Belltower</a>
                 <a href="./archive/">Archive</a>
