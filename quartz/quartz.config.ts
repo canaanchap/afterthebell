@@ -16,7 +16,8 @@ const config: QuartzConfig = {
       provider: "plausible",
     },
     locale: "en-US",
-    baseUrl: "https://github.com/canaanchap/afterthebell",
+    /* baseUrl: "https://github.com/canaanchap/afterthebell", */
+    baseUrl: "canaanchap.github.io/afterthebell/archive",
     ignorePatterns: ["private", "templates", ".obsidian"],
     defaultDateType: "modified",
     theme: {
