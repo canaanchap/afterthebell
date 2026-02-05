@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<!-- version 0.27 / Feb. 3, 2026 -->
+<!-- version 0.30 / Feb. 4, 2026 -->
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -150,13 +150,28 @@
       max-width: 560px;
     }
 
+    .date-line {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-bottom: 0.35rem;
+    }
+
     .date-display {
       font-family: 'Cormorant Garamond', serif;
       font-size: 1.6rem;
       font-weight: 600;
       color: var(--parchment);
-      margin-bottom: 0.35rem;
       letter-spacing: 0.03em;
+    }
+
+    .season-label {
+      font-size: 0.95rem;
+      font-style: italic;
+      color: var(--text-muted);
+      padding-left: 0.75rem;
+      border-left: 1px solid rgba(100, 100, 100, 0.3);
     }
 
     .year-display {
@@ -1256,7 +1271,7 @@
     .observances-section {
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: 0.75rem;
     }
 
     .observances-year {
@@ -1278,20 +1293,19 @@
       list-style: none;
       display: flex;
       flex-direction: column;
-      gap: 0.35rem;
+      gap: 0.5rem;
     }
 
     .observance-item {
       display: flex;
       align-items: flex-start;
       gap: 0.5rem;
-      padding: 0.35rem 0;
-      font-size: 0.85rem;
-      color: var(--text-muted);
+      padding: 0.4rem 0;
       transition: color 0.2s ease;
     }
 
-    .observance-item.current {
+    .observance-item.current .observance-name,
+    .observance-item.current .observance-date {
       color: var(--gold);
     }
 
@@ -1299,8 +1313,8 @@
       width: 6px;
       height: 6px;
       border-radius: 50%;
-      background: var(--text-dim);
-      margin-top: 0.4em;
+      background: var(--gold);
+      margin-top: 0.5em;
       flex-shrink: 0;
       opacity: 0;
       transition: opacity 0.2s ease;
@@ -1308,22 +1322,29 @@
 
     .observance-item.current .observance-dot {
       opacity: 1;
-      background: var(--gold);
     }
 
-    .observance-name {
+    .observance-text {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
       flex: 1;
     }
 
+    .observance-name {
+      font-size: 0.9rem;
+      color: var(--parchment);
+      line-height: 1.3;
+    }
+
     .observance-date {
-      font-size: 0.75rem;
+      font-size: 0.8rem;
       color: var(--text-dim);
-      font-family: 'JetBrains Mono', monospace;
+      font-style: italic;
     }
 
     .observance-item.current .observance-date {
-      color: var(--gold);
-      opacity: 0.8;
+      opacity: 0.85;
     }
 
     @media (max-width: 900px) {
@@ -1398,8 +1419,10 @@
       <div class="divider"></div>
 
       <div class="clock-container">
-        <div class="date-display" id="dateDisplay">Loading...</div>
-        <span class="season-label" id="seasonLabel">Summer</span>
+        <div class="date-line">
+          <span class="date-display" id="dateDisplay">Loading...</span>
+          <span class="season-label" id="seasonLabel">Summer</span>
+        </div>
         <div class="year-display">
           <span class="ar" id="yearAR"></span>
           <span class="ab" id="yearAB"></span>
@@ -2875,6 +2898,9 @@
       
       updateCalendarPanel(time.calendar.dayOfWeekIndex, time.calendar.monthIndex);
       
+      // Update observances panel (only rebuilds when day changes)
+      updateObservancesPanel();
+      
       // Update tide panel if visible
       if (tidesPanelVisible) {
         updateTidePanel();
@@ -3417,53 +3443,111 @@ MONTHS, DAYS</pre>`;
     // ═══════════════════════════════════════════════════════════════════════════
 
     /**
-     * Observances Configuration
-     * 
-     * Rule Types:
-     * - "absolute": Fixed date each year (like Christmas)
-     *   { type: "absolute", month: 1-10, day: 1-49 }
-     * 
-     * - "solar": Based on solstices/equinoxes
-     *   { type: "solar", event: "spring_equinox"|"summer_solstice"|"autumn_equinox"|"winter_solstice", offset: days }
-     * 
-     * - "lunar": Based on moon phases
-     *   { type: "lunar", moon: "sonderr"|"ekko", phase: "new"|"full", 
-     *     after: "spring_equinox"|"summer_solstice"|etc, occurrence: 1|2|3 }
+     * ╔═══════════════════════════════════════════════════════════════════════════╗
+     * ║                        OBSERVANCE RULE REFERENCE                          ║
+     * ╠═══════════════════════════════════════════════════════════════════════════╣
+     * ║                                                                           ║
+     * ║  TYPE 1: ABSOLUTE - Fixed calendar date (like Christmas = Dec 25)        ║
+     * ║  ─────────────────────────────────────────────────────────────────────── ║
+     * ║  { type: "absolute", month: 1-10, day: 1-49 }                            ║
+     * ║                                                                           ║
+     * ║  Examples:                                                                ║
+     * ║    { type: "absolute", month: 1, day: 1 }     → Primen 1 every year      ║
+     * ║    { type: "absolute", month: 5, day: 24 }    → Meylis 24 every year     ║
+     * ║                                                                           ║
+     * ║  TYPE 2: SOLAR - Relative to solstice/equinox with offset                ║
+     * ║  ─────────────────────────────────────────────────────────────────────── ║
+     * ║  { type: "solar", event: "<event>", offset: <days> }                     ║
+     * ║                                                                           ║
+     * ║  Events: "spring_equinox", "summer_solstice",                            ║
+     * ║          "autumn_equinox", "winter_solstice"                             ║
+     * ║  Offset: positive = days AFTER, negative = days BEFORE                   ║
+     * ║                                                                           ║
+     * ║  Examples:                                                                ║
+     * ║    { type: "solar", event: "spring_equinox", offset: 0 }                 ║
+     * ║      → Day OF spring equinox (Verdane 24)                                ║
+     * ║    { type: "solar", event: "winter_solstice", offset: -7 }               ║
+     * ║      → 7 days BEFORE winter solstice                                     ║
+     * ║    { type: "solar", event: "summer_solstice", offset: 3 }                ║
+     * ║      → 3 days AFTER summer solstice                                      ║
+     * ║                                                                           ║
+     * ║  TYPE 3: LUNAR - Moon phase after solar event, with offset               ║
+     * ║  ─────────────────────────────────────────────────────────────────────── ║
+     * ║  { type: "lunar", moon: "<moon>", phase: "<phase>",                      ║
+     * ║    after: "<event>", occurrence: <n>, offset: <days> }                   ║
+     * ║                                                                           ║
+     * ║  Moon: "sonderr" or "ekko"                                               ║
+     * ║  Phase: "new" or "full"                                                  ║
+     * ║  After: solar event to start searching from                              ║
+     * ║  Occurrence: 1st, 2nd, 3rd... instance of that phase                     ║
+     * ║  Offset: days after (positive) or before (negative) the moon phase       ║
+     * ║                                                                           ║
+     * ║  Examples:                                                                ║
+     * ║    { type: "lunar", moon: "sonderr", phase: "full",                      ║
+     * ║      after: "summer_solstice", occurrence: 1, offset: 0 }                ║
+     * ║      → Day OF first full Sonderr after Summer Solstice                   ║
+     * ║                                                                           ║
+     * ║    { type: "lunar", moon: "ekko", phase: "new",                          ║
+     * ║      after: "autumn_equinox", occurrence: 2, offset: 3 }                 ║
+     * ║      → 3 days AFTER the 2nd new Ekko following Autumn Equinox            ║
+     * ║                                                                           ║
+     * ║    { type: "lunar", moon: "sonderr", phase: "full",                      ║
+     * ║      after: "spring_equinox", occurrence: 1, offset: -1 }                ║
+     * ║      → 1 day BEFORE first full Sonderr after Spring Equinox              ║
+     * ║                                                                           ║
+     * ║  TYPE 4: LUNAR_ABSOLUTE - Moon phase within specific month               ║
+     * ║  ─────────────────────────────────────────────────────────────────────── ║
+     * ║  { type: "lunar_absolute", moon: "<moon>", phase: "<phase>",             ║
+     * ║    month: 1-10, occurrence: <n>, offset: <days> }                        ║
+     * ║                                                                           ║
+     * ║  Examples:                                                                ║
+     * ║    { type: "lunar_absolute", moon: "sonderr", phase: "full",             ║
+     * ║      month: 7, occurrence: 1, offset: 0 }                                ║
+     * ║      → Day OF first full Sonderr in Harkan                               ║
+     * ║                                                                           ║
+     * ║    { type: "lunar_absolute", moon: "ekko", phase: "new",                 ║
+     * ║      month: 3, occurrence: 1, offset: 2 }                                ║
+     * ║      → 2 days AFTER first new Ekko in Avenyl                             ║
+     * ║                                                                           ║
+     * ╚═══════════════════════════════════════════════════════════════════════════╝
      */
+
+    // Solar event day-of-year values (from CONFIG)
+    const SOLAR_EVENTS = {
+      spring_equinox: 73,     // Verdane 24
+      summer_solstice: 220,   // Meylis 24
+      autumn_equinox: 368,    // Rhovan 24
+      winter_solstice: 466    // Dirgesong 24
+    };
+
+    // Observances list - edit this to add/remove holidays
     const OBSERVANCES = [
       {
         name: "Festival of First Light",
-        description: "Celebrates the return of longer days",
+        description: "Celebrates the return of longer days at the Spring Equinox",
         rule: { type: "solar", event: "spring_equinox", offset: 0 }
       },
       {
         name: "Sonderr's Blessing",
-        description: "First full moon of Sonderr after Summer Solstice",
-        rule: { type: "lunar", moon: "sonderr", phase: "full", after: "summer_solstice", occurrence: 1 }
+        description: "The day after the first full Sonderr following Summer Solstice",
+        rule: { type: "lunar", moon: "sonderr", phase: "full", after: "summer_solstice", occurrence: 1, offset: 1 }
+      },
+      {
+        name: "Harvest's End",
+        description: "The day before the Autumn Equinox, marking the final harvest",
+        rule: { type: "solar", event: "autumn_equinox", offset: -1 }
+      },
+      {
+        name: "The Long Dark",
+        description: "Winter Solstice - the longest night",
+        rule: { type: "solar", event: "winter_solstice", offset: 0 }
       }
     ];
 
-    // Solar event day-of-year values (from existing CONFIG)
-    const SOLAR_EVENTS = {
-      spring_equinox: 123,    // ~Verdan 24
-      summer_solstice: 245,   // ~Solren 1
-      autumn_equinox: 368,    // ~Harkan 26
-      winter_solstice: 490    // ~Dormael 49 / year end
-    };
-
-    function calculateObservanceDate(rule, year) {
-      const dayOfYear = getDayOfYearForRule(rule, year);
-      if (dayOfYear === null) return null;
+    // Calculate the day-of-year for a given rule
+    function getObservanceDayOfYear(rule, year) {
+      const CONFIG = ResonaraTime.CONFIG;
       
-      // Convert day-of-year to month/day
-      const daysPerMonth = 49;
-      const month = Math.floor((dayOfYear - 1) / daysPerMonth);
-      const day = ((dayOfYear - 1) % daysPerMonth) + 1;
-      
-      return { dayOfYear, month, day, year };
-    }
-
-    function getDayOfYearForRule(rule, year) {
       if (rule.type === 'absolute') {
         return (rule.month - 1) * 49 + rule.day;
       }
@@ -3471,60 +3555,233 @@ MONTHS, DAYS</pre>`;
       if (rule.type === 'solar') {
         const baseDay = SOLAR_EVENTS[rule.event];
         if (!baseDay) {
-          console.warn(`Unknown solar event: ${rule.event}`);
+          console.warn(`Observances: Unknown solar event "${rule.event}"`);
           return null;
         }
         return baseDay + (rule.offset || 0);
       }
       
       if (rule.type === 'lunar') {
-        // Find the nth occurrence of a moon phase after a solar event
         const afterDay = SOLAR_EVENTS[rule.after];
         if (!afterDay) {
-          console.warn(`Unknown solar event for lunar rule: ${rule.after}`);
+          console.warn(`Observances: Unknown solar event for lunar rule "${rule.after}"`);
           return null;
         }
         
-        const moonCycle = rule.moon === 'sonderr' ? 35 : 21;
+        const moonCycle = rule.moon === 'sonderr' ? CONFIG.SONDERR_CYCLE : CONFIG.EKKO_CYCLE;
         let count = 0;
+        let lastPhaseDay = -999;
         
-        // Search from the solar event through the rest of the year
         for (let searchDay = afterDay; searchDay <= 490; searchDay++) {
-          // Calculate moon phase for this day
-          // Using the same logic as getMoonInfo
           const totalDays = (year - 1) * 490 + searchDay;
-          const moonDays = rule.moon === 'sonderr' 
-            ? totalDays % 35 
-            : totalDays % 21;
+          const moonDays = totalDays % moonCycle;
           const phaseFraction = moonDays / moonCycle;
           
-          // Check if this is the target phase (with small tolerance)
-          const isTargetPhase = rule.phase === 'new' 
-            ? (phaseFraction < 0.02 || phaseFraction > 0.98)
-            : (phaseFraction > 0.48 && phaseFraction < 0.52);
+          const isNewMoon = phaseFraction < 0.03 || phaseFraction > 0.97;
+          const isFullMoon = phaseFraction > 0.47 && phaseFraction < 0.53;
+          const isTargetPhase = rule.phase === 'new' ? isNewMoon : isFullMoon;
           
-          if (isTargetPhase) {
+          if (isTargetPhase && (searchDay - lastPhaseDay) > 5) {
             count++;
+            lastPhaseDay = searchDay;
             if (count === (rule.occurrence || 1)) {
-              return searchDay;
+              return searchDay + (rule.offset || 0);
             }
           }
         }
+        return null;
+      }
+      
+      if (rule.type === 'lunar_absolute') {
+        const CONFIG = ResonaraTime.CONFIG;
+        const monthStart = (rule.month - 1) * 49 + 1;
+        const monthEnd = rule.month * 49;
+        const moonCycle = rule.moon === 'sonderr' ? CONFIG.SONDERR_CYCLE : CONFIG.EKKO_CYCLE;
+        let count = 0;
+        let lastPhaseDay = -999;
         
-        console.warn(`Could not find lunar event for rule:`, rule);
+        for (let searchDay = monthStart; searchDay <= monthEnd; searchDay++) {
+          const totalDays = (year - 1) * 490 + searchDay;
+          const moonDays = totalDays % moonCycle;
+          const phaseFraction = moonDays / moonCycle;
+          
+          const isNewMoon = phaseFraction < 0.03 || phaseFraction > 0.97;
+          const isFullMoon = phaseFraction > 0.47 && phaseFraction < 0.53;
+          const isTargetPhase = rule.phase === 'new' ? isNewMoon : isFullMoon;
+          
+          if (isTargetPhase && (searchDay - lastPhaseDay) > 5) {
+            count++;
+            lastPhaseDay = searchDay;
+            if (count === (rule.occurrence || 1)) {
+              return searchDay + (rule.offset || 0);
+            }
+          }
+        }
         return null;
       }
       
       return null;
     }
 
-    function buildObservancesPanel() {
+    // Convert day-of-year to full date info
+    function dayOfYearToDate(dayOfYear, year) {
+      const MONTHS = ResonaraTime.MONTHS;
+      const DAYS = ResonaraTime.DAYS;
+      
+      // Clamp to valid range
+      const clampedDay = Math.max(1, Math.min(490, dayOfYear));
+      
+      const monthIndex = Math.floor((clampedDay - 1) / 49);
+      const dayOfMonth = ((clampedDay - 1) % 49) + 1;
+      const dayOfWeekIndex = (clampedDay - 1) % 7;
+      
+      return {
+        dayOfYear: clampedDay,
+        monthIndex,
+        dayOfMonth,
+        dayOfWeekIndex,
+        year,
+        monthName: MONTHS[monthIndex]?.name || 'Unknown',
+        dayOfWeekName: DAYS[dayOfWeekIndex] || 'Unknown',
+        formatted: `${DAYS[dayOfWeekIndex]}, ${MONTHS[monthIndex]?.name} ${dayOfMonth}`
+      };
+    }
+
+    // Get all observances for a given year with calculated dates
+    function getObservancesForYear(year) {
+      return OBSERVANCES.map(obs => {
+        const dayOfYear = getObservanceDayOfYear(obs.rule, year);
+        if (dayOfYear === null) return null;
+        
+        const date = dayOfYearToDate(dayOfYear, year);
+        return {
+          name: obs.name,
+          description: obs.description,
+          rule: obs.rule,
+          ...date
+        };
+      }).filter(obs => obs !== null)
+        .sort((a, b) => a.dayOfYear - b.dayOfYear);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // OBSERVANCES API
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    const ObservancesAPI = {
+      // Get all defined observances (rules only)
+      getDefinitions: () => OBSERVANCES.map(o => ({ ...o })),
+      
+      // Get observances for a specific year with calculated dates
+      getForYear: (year) => getObservancesForYear(year),
+      
+      // Get observances for current year
+      getCurrentYear: () => {
+        const time = ResonaraTime.getCurrentTime();
+        return getObservancesForYear(time.calendar.year);
+      },
+      
+      // Get observances for next year
+      getNextYear: () => {
+        const time = ResonaraTime.getCurrentTime();
+        return getObservancesForYear(time.calendar.year + 1);
+      },
+      
+      // Get observances in a specific month (1-10)
+      getForMonth: (year, month) => {
+        return getObservancesForYear(year).filter(o => o.monthIndex === month - 1);
+      },
+      
+      // Get observances in current month
+      getCurrentMonth: () => {
+        const time = ResonaraTime.getCurrentTime();
+        return getObservancesForYear(time.calendar.year)
+          .filter(o => o.monthIndex === time.calendar.monthIndex);
+      },
+      
+      // Get next upcoming observance
+      getNext: () => {
+        const time = ResonaraTime.getCurrentTime();
+        const currentDayOfYear = time.calendar.daysIntoYear + 1;
+        const year = time.calendar.year;
+        
+        // Check current year
+        const thisYear = getObservancesForYear(year);
+        const upcoming = thisYear.find(o => o.dayOfYear > currentDayOfYear);
+        if (upcoming) return { ...upcoming, year };
+        
+        // Check next year
+        const nextYear = getObservancesForYear(year + 1);
+        if (nextYear.length > 0) return { ...nextYear[0], year: year + 1 };
+        
+        return null;
+      },
+      
+      // Check if today is an observance
+      isToday: () => {
+        const time = ResonaraTime.getCurrentTime();
+        const currentDayOfYear = time.calendar.daysIntoYear + 1;
+        const year = time.calendar.year;
+        
+        const today = getObservancesForYear(year).find(o => o.dayOfYear === currentDayOfYear);
+        return today || null;
+      },
+      
+      // Check if a specific day is an observance
+      isObservance: (year, dayOfYear) => {
+        const obs = getObservancesForYear(year).find(o => o.dayOfYear === dayOfYear);
+        return obs || null;
+      },
+      
+      // Get days until next observance
+      daysUntilNext: () => {
+        const time = ResonaraTime.getCurrentTime();
+        const currentDayOfYear = time.calendar.daysIntoYear + 1;
+        const year = time.calendar.year;
+        
+        const thisYear = getObservancesForYear(year);
+        const upcoming = thisYear.find(o => o.dayOfYear > currentDayOfYear);
+        
+        if (upcoming) {
+          return upcoming.dayOfYear - currentDayOfYear;
+        }
+        
+        // Days remaining in year + first observance of next year
+        const nextYear = getObservancesForYear(year + 1);
+        if (nextYear.length > 0) {
+          return (490 - currentDayOfYear) + nextYear[0].dayOfYear;
+        }
+        
+        return null;
+      }
+    };
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // OBSERVANCES UI - LIVE UPDATING
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    let lastObservancesYear = null;
+    let lastObservancesDayOfYear = null;
+
+    function updateObservancesPanel() {
       const section = document.getElementById('observancesSection');
       if (!section) return;
       
-      const time = ResonaraTime.getTime();
-      const currentYear = time.calendar.yearAR;
-      const currentDayOfYear = (time.calendar.monthIndex * 49) + time.calendar.day;
+      const time = ResonaraTime.getCurrentTime();
+      if (!time) return;
+      
+      const currentYear = time.calendar.year;
+      const currentDayOfYear = time.calendar.daysIntoYear + 1;
+      
+      // Only rebuild if year or day changed (or first load)
+      const needsRebuild = lastObservancesYear !== currentYear || 
+                           lastObservancesDayOfYear !== currentDayOfYear ||
+                           section.children.length === 0;
+      
+      if (!needsRebuild) return;
+      
+      lastObservancesYear = currentYear;
+      lastObservancesDayOfYear = currentDayOfYear;
       
       section.innerHTML = '';
       
@@ -3538,37 +3795,45 @@ MONTHS, DAYS</pre>`;
         const list = document.createElement('ul');
         list.className = 'observances-list';
         
-        // Calculate dates for all observances this year
-        const yearObservances = OBSERVANCES.map(obs => {
-          const date = calculateObservanceDate(obs.rule, year);
-          return { ...obs, date };
-        }).filter(obs => obs.date !== null)
-          .sort((a, b) => a.date.dayOfYear - b.date.dayOfYear);
+        const yearObservances = getObservancesForYear(year);
+        
+        if (yearObservances.length === 0) {
+          const emptyItem = document.createElement('li');
+          emptyItem.className = 'observance-item';
+          emptyItem.innerHTML = '<span class="observance-name" style="opacity:0.5">No observances defined</span>';
+          list.appendChild(emptyItem);
+        }
         
         yearObservances.forEach(obs => {
           const item = document.createElement('li');
           item.className = 'observance-item';
           
-          // Check if this is the current observance (today)
-          if (year === currentYear && obs.date.dayOfYear === currentDayOfYear) {
+          // Check if this is today's observance
+          const isToday = year === currentYear && obs.dayOfYear === currentDayOfYear;
+          if (isToday) {
             item.classList.add('current');
           }
           
           const dot = document.createElement('span');
           dot.className = 'observance-dot';
           
-          const name = document.createElement('span');
+          const textContainer = document.createElement('div');
+          textContainer.className = 'observance-text';
+          
+          const name = document.createElement('div');
           name.className = 'observance-name';
           name.textContent = obs.name;
           name.title = obs.description || '';
           
-          const date = document.createElement('span');
-          date.className = 'observance-date';
-          date.textContent = `${CONFIG.MONTHS[obs.date.month].substring(0, 3)} ${obs.date.day}`;
+          const dateSpan = document.createElement('div');
+          dateSpan.className = 'observance-date';
+          dateSpan.textContent = obs.formatted; // "DayName, MonthName Date"
+          
+          textContainer.appendChild(name);
+          textContainer.appendChild(dateSpan);
           
           item.appendChild(dot);
-          item.appendChild(name);
-          item.appendChild(date);
+          item.appendChild(textContainer);
           list.appendChild(item);
         });
         
@@ -3597,9 +3862,9 @@ MONTHS, DAYS</pre>`;
             targetContent.classList.add('active');
           }
           
-          // Build observances when switching to that tab
+          // Update observances when switching to that tab
           if (targetTab === 'observances') {
-            buildObservancesPanel();
+            updateObservancesPanel();
           }
         });
       });
@@ -3609,20 +3874,30 @@ MONTHS, DAYS</pre>`;
     // ADDITIONAL CHRONICLE EVENTS (JSON LOADING)
     // ═══════════════════════════════════════════════════════════════════════════
 
+    /**
+     * Configure remote chronicle URL here if hosting JSON externally.
+     * Set to null to use local file (requires HTTP server, not file://)
+     * Examples:
+     *   const CHRONICLE_URL = null; // Local: additional-chronicle-events.json
+     *   const CHRONICLE_URL = 'https://example.com/data/chronicle.json';
+     *   const CHRONICLE_URL = 'https://raw.githubusercontent.com/user/repo/main/chronicle.json';
+     */
+    const CHRONICLE_URL = null;
+
     function addABDateIfNeeded(dateStr) {
       if (typeof dateStr !== "string") return "";
       
       // Don't double-apply if already contains "(... AB)"
       if (/\(\s*-?\d+\s*AB\s*\)/.test(dateStr)) return dateStr;
       
-      // Match: Year <digits> AR · <rest>
-      const m = dateStr.match(/^Year\s+(\d+)\s+AR\s+·\s+(.+)$/);
+      // Match: Year <digits> AR · <rest>  (or with regular dot)
+      const m = dateStr.match(/^Year\s+(\d+)\s+AR\s+[·.]\s*(.+)$/);
       if (!m) return dateStr;
       
       const arYear = parseInt(m[1], 10);
       const rest = m[2];
       
-      // 2016 AR stays as-is (The Bale year)
+      // 2016 AR stays as-is (The Bale year - Year 0 AB)
       if (arYear === 2016) return dateStr;
       
       const abYear = arYear - 2016;
@@ -3633,8 +3908,21 @@ MONTHS, DAYS</pre>`;
       const historySection = document.querySelector('.history-section');
       if (!historySection) return;
       
+      // Determine URL to fetch
+      const url = CHRONICLE_URL || 'additional-chronicle-events.json';
+      const isRemote = url.startsWith('http://') || url.startsWith('https://');
+      
+      // Check if we're on file:// protocol (CORS won't work for local files)
+      if (!isRemote && window.location.protocol === 'file:') {
+        console.log('%c📜 Additional events: Skipped (file:// protocol - use HTTP server or set CHRONICLE_URL to a remote URL)', 'color: #d2691e');
+        return;
+      }
+      
       try {
-        const response = await fetch('additional-chronicle-events.json', { cache: 'no-store' });
+        const response = await fetch(url, { 
+          cache: 'no-store',
+          mode: isRemote ? 'cors' : 'same-origin'
+        });
         
         if (!response.ok) {
           if (response.status === 404) {
@@ -3651,10 +3939,12 @@ MONTHS, DAYS</pre>`;
         for (const item of entries) {
           const entry = document.createElement('div');
           entry.className = 'history-entry';
+          entry.dataset.source = 'json'; // Mark as loaded from JSON
           
-          const date = document.createElement('div');
-          date.className = 'history-date';
-          date.textContent = addABDateIfNeeded(item['history-date'] ?? '');
+          const dateDiv = document.createElement('div');
+          dateDiv.className = 'history-date';
+          // Apply AB date conversion
+          dateDiv.textContent = addABDateIfNeeded(item['history-date'] ?? '');
           
           const title = document.createElement('div');
           title.className = 'history-title';
@@ -3664,23 +3954,33 @@ MONTHS, DAYS</pre>`;
           desc.className = 'history-desc';
           desc.textContent = item['history-desc'] ?? '';
           
-          entry.appendChild(date);
+          entry.appendChild(dateDiv);
           entry.appendChild(title);
           entry.appendChild(desc);
           historySection.appendChild(entry);
         }
         
-        // Re-sort after adding entries
-        const sortBtn = document.getElementById('chronicleSortBtn');
-        if (sortBtn) sortBtn.click(); // Trigger re-sort
+        // Re-sort after adding entries (trigger the existing sort)
+        if (entries.length > 0) {
+          const sortBtn = document.getElementById('chronicleSortBtn');
+          if (sortBtn) {
+            // Click twice to maintain current direction but re-sort
+            sortBtn.click();
+            sortBtn.click();
+          }
+        }
         
-        console.log(`%c📜 Additional events: ${entries.length} entries loaded`, 'color: #90ee90');
+        console.log(`%c📜 Additional events: ${entries.length} entries loaded${isRemote ? ' (remote)' : ''}`, 'color: #90ee90');
         
       } catch (error) {
-        if (error.name === 'TypeError' && error.message.includes('fetch')) {
-          console.log('%c📜 Additional events: NOT found (optional file)', 'color: #6b7280');
+        if (error.name === 'TypeError' || error.message?.includes('fetch') || error.message?.includes('CORS')) {
+          if (isRemote) {
+            console.warn('📜 Additional events: CORS error - check that the remote server allows cross-origin requests');
+          } else {
+            console.log('%c📜 Additional events: NOT found or inaccessible', 'color: #6b7280');
+          }
         } else {
-          console.warn('📜 Additional events: Load error', error);
+          console.warn('📜 Additional events: Load error', error.message || error);
         }
       }
     }
@@ -3692,19 +3992,26 @@ MONTHS, DAYS</pre>`;
     // Expose comprehensive API
     window.ResonaraAPI = {
       // Time & Calendar
-      getTime: () => ResonaraTime.getTime(),
+      getTime: () => ResonaraTime.getCurrentTime(),
+      getCurrentTime: () => ResonaraTime.getCurrentTime(),
       getMoonInfo: () => ResonaraTime.getMoonInfo(),
-      getEclipseStatus: () => ResonaraTime.getEclipseStatus(),
-      getSunTimes: () => ResonaraTime.getSunTimes(),
-      getTidalInfo: () => ResonaraTime.getTidalInfo(),
-      getUpcomingEvents: (days) => getUpcomingEvents(ResonaraTime.getMoonInfo().fractionalGameDays, days || 490),
+      getEclipseStatus: () => ResonaraTime.getEclipseInfo(),
+      getSunTimes: () => ResonaraTime.getSolarInfo(),
+      getTidalInfo: () => ResonaraTime.getTideInfo(),
+      getUpcomingEvents: (days) => ResonaraTime.getUpcomingEvents(
+        ResonaraTime.getMoonInfo().fractionalGameDays, days || 490
+      ),
       
-      // Observances
-      getObservances: () => OBSERVANCES,
-      calculateObservanceDate: (rule, year) => calculateObservanceDate(rule, year),
+      // Observances / Holidays - full API
+      observances: ObservancesAPI,
+      // Convenience shortcuts
+      getObservances: () => ObservancesAPI.getCurrentYear(),
+      getNextObservance: () => ObservancesAPI.getNext(),
+      isHolidayToday: () => ObservancesAPI.isToday(),
+      daysUntilNextHoliday: () => ObservancesAPI.daysUntilNext(),
       
       // Config
-      getConfig: () => ({ ...CONFIG }),
+      getConfig: () => ({ ...ResonaraTime.CONFIG }),
       
       // Debug
       simulateEclipse: () => window.simulateEclipse?.(),

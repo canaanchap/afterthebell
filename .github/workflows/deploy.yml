@@ -34,7 +34,7 @@ jobs:
 
       - name: Build Quartz into public/archive
         working-directory: quartz
-        run: npx quartz build -o ../public/archive
+        run: npx quartz build -d ../content -o ../public/archive
 
       - name: Copy belltower into public/belltower
         run: |
@@ -64,6 +64,15 @@ jobs:
             </body>
           </html>
           EOF
+
+      - name: Debug verify archive output exists
+        run: |
+          echo "---- public root ----"
+          ls -la public
+          echo "---- public/archive ----"
+          ls -la public/archive || true
+          echo "---- index check ----"
+          test -f public/archive/index.html && echo "OK: public/archive/index.html exists" || (echo "MISSING: public/archive/index.html" && exit 1)
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
