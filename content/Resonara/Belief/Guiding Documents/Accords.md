@@ -1,0 +1,4 @@
+---
+aliases:
+  - Three Pillars Doctrine
+---
