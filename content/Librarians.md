@@ -58,18 +58,29 @@ The following is a list of all individuals who have held the foremost position i
 14. [[Hadrian Justwords]], Fourteenth Bibliarch
 
 [[Expansion Era]]
+
 15. The Lost Bibliarch [[Octavian Farseeker]], the Navigator, the Fifteenth
+
 16. [[Valentine Greymantle]], Sixteenth Bibliarch
+
 17. [[Dorian Nightingale]], the Brief
+
 18. [[Oriana Stillwater]], Interim
+
 19. [[Cassandra Truesight]], the Prophet, Nineteenth Bibliarch
+
 20. The Administrator, [[Marcellus Ironbound]], Twentieth Bibliarch
 
 [[Modern Period]]
+
 21. [[Aurelius Stormbringer]], the Revolutionary; B21
+
 22. [[Lucian Inkwell]], Interim; B22
+
 23. The Enigmatic [[Morgana Shadowleaf]]; B23
+
 24. [[Dorian Blackwood|Dorian]] the Steward, Interim; B24
+
 25. His Erudition [[Thaddeus Brightbell]], Twenty-Fifth Bibliarch, Keeper of the Modern Archives and Voice of the Fifth Century; B25
 
 
