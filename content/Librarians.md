@@ -16,28 +16,45 @@ Only in retrospect does the [[Great Library]] note six major
 The following is a list of all individuals who have held the foremost position in the Great Library (and its forms). *Note that during the Founding Era, many saw [[The Cult of the Forgotten]] as an errant religious sect, not as a central repository of knowledge and research, and as such, top position titles and roles vary.
 
 [[Founding Era]]
+
 1. [[Keeper Aldric the Rememberer|Aldric the Rememberer]], Keeper
+
 2. [[Thessaly Moonscribe|Thessaly]], Moonscribe; Head Librarian
+
 3. [[Veran the Elder]], the First Sound and Head Librarian
 
 [[Consolidation Era]]
+
 1. First Bibliarch [[Lysander Truequill|Lysander]] of House Truequill, the Reconciler
+
 2. [[Aleesia First-of-Pages]], Second Bibliarch
+
 3. Bibliarch [[Veran II]], Keeper of Silent Wisdom, Echo of the First, Son of Martyrs
+
 4. [[Theron Blackbell]], Fourth Bibliarch
 
 [[Golden Age]]
+
 5. Her Knowledgable [[Seraphine the Bright|Seraphine]], Fifth Bibliarch, Light of Archives, Keeper of Ten Thousand Truths, the Reconciler of Schools
+
 6. [[Matthias Goldleaf]], Sixth Bibliarch
+
 7. [[Olivin the Steady]], Interim
+
 8. Bibliarch [[Isadora Stoneheart|Isadora]] of the Stone Line, Eigth Keeper, the Absolute Sovereign of Knowledge
 
 [[Schism Era]]
+
 9. [[Corvus Stoneheart]], the Reformer and Ninth Bibliarch
+
 10. Bibliarch-General [[Tiberius Flameheart|Tiberius]] of House Flameheart, Tenth Keeper, Guardian of Order
+
 11. [[Helena Fairvoice|Helena Peaceweaver]], Eleventh Bibliarch
+
 12. [[Thalia Evenstar]], Interim
+
 13. [[Elena of the Common Field]], Thirteenth Bibliarch
+
 14. [[Hadrian Justwords]], Fourteenth Bibliarch
 
 [[Expansion Era]]
