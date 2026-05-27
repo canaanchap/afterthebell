@@ -1,0 +1,158 @@
+{
+  "v": 2,
+  "title": "RESONARA planning",
+  "labels": [
+    {
+      "name": "more needed",
+      "color": "#6c63ff",
+      "bg": "#ede9fe",
+      "fg": "#4f46e5"
+    },
+    {
+      "name": "writing",
+      "color": "#38bdf8",
+      "bg": "#dbeafe",
+      "fg": "#1d4ed8"
+    },
+    {
+      "name": "complete",
+      "color": "#34d399",
+      "bg": "#dcfce7",
+      "fg": "#15803d"
+    },
+    {
+      "name": "planning",
+      "color": "#fbbf24",
+      "bg": "#fef9c3",
+      "fg": "#a16207"
+    },
+    {
+      "name": "critical",
+      "color": "#ef4444",
+      "bg": "#fee2e2",
+      "fg": "#b91c1c"
+    },
+    {
+      "name": "TBD",
+      "color": "#ec4899",
+      "bg": "#fce7f3",
+      "fg": "#be185d"
+    }
+  ],
+  "statuses": [
+    "Not started",
+    "In progress",
+    "Blocked",
+    "Complete"
+  ],
+  "progressMode": "auto",
+  "columns": [
+    {
+      "id": "mpofv509u4nf",
+      "name": "planning",
+      "color": "#64748b",
+      "cards": [
+        {
+          "id": "mpofwivy9bqj",
+          "text": "basic engine",
+          "label": null,
+          "status": 0,
+          "progress": 0,
+          "subtasks": [
+            {
+              "id": "mpofwz9uoyso",
+              "text": "start up and listen",
+              "done": false
+            },
+            {
+              "id": "mpofx644dwt6",
+              "text": "accept incoming connections",
+              "done": false
+            },
+            {
+              "id": "mpofx9wwejmv",
+              "text": "handle disconnections",
+              "done": false
+            }
+          ]
+        },
+        {
+          "id": "mpofwlqifr2h",
+          "text": "basic login system",
+          "label": null,
+          "status": 0,
+          "progress": 0,
+          "subtasks": [
+            {
+              "id": "mpofzpwxm99k",
+              "text": "prompt for name",
+              "done": false
+            },
+            {
+              "id": "mpog2hsit42z",
+              "text": "\"who\" command for list of all connected players",
+              "done": false
+            },
+            {
+              "id": "mpog2pfw1l89",
+              "text": "status for players",
+              "done": false
+            }
+          ]
+        },
+        {
+          "id": "mpog0b56cn8e",
+          "text": "advanced login system",
+          "label": null,
+          "status": 0,
+          "progress": 0,
+          "subtasks": [
+            {
+              "id": "mpog0jfrxcze",
+              "text": "login with character name",
+              "done": false
+            },
+            {
+              "id": "mpog0optr935",
+              "text": "register email address (for recovery)",
+              "done": false
+            },
+            {
+              "id": "mpog0t4jtkg7",
+              "text": "password prompt",
+              "done": false
+            },
+            {
+              "id": "mpog53xyh2gl",
+              "text": "simple create character (name)",
+              "done": false
+            },
+            {
+              "id": "mpogb7mokba9",
+              "text": "simple password prompt",
+              "done": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mpofv509g3ve",
+      "name": "next up",
+      "color": "#6c63ff",
+      "cards": []
+    },
+    {
+      "id": "mpofv509e40r",
+      "name": "In Progress",
+      "color": "#ec4899",
+      "cards": []
+    },
+    {
+      "id": "mpofv509fb47",
+      "name": "Done",
+      "color": "#34d399",
+      "cards": []
+    }
+  ]
+}
