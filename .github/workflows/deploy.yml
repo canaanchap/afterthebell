@@ -28,10 +28,10 @@ jobs:
           mkdir -p public/belltower
           rsync -a --delete belltower/ public/belltower/
 
-      - name: Copy project (kanban) into public/project
+      - name: Copy project (viewer + board data) into public/project
         run: |
           mkdir -p public/project
-          cp resonara-project/kanban.html public/project/index.html
+          cp resonara-project/viewer.html public/project/index.html
           cp resonara-project/*.board public/project/ 2>/dev/null || true
 
       - name: Root landing page

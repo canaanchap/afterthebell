@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Board</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f0f2f5;--sur:#fff;--sur2:#f7f8fa;--bdr:#e2e8f0;
+  --acc:#6c63ff;--acc-bg:#ede9fe;--txt:#1e293b;--mut:#94a3b8;
+  --r:12px;--rs:8px;--cw:305px;
+  --sh:0 1px 3px rgba(0,0,0,.07),0 4px 12px rgba(0,0,0,.05);
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--txt);height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+*{scrollbar-color:var(--bdr) transparent;scrollbar-width:thin}
+::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:2px}
+/* Header */
+header{display:flex;align-items:center;gap:9px;padding:10px 16px;background:var(--sur);border-bottom:1px solid var(--bdr);flex-shrink:0;min-height:52px}
+#btitle{font-size:.95rem;font-weight:700;color:var(--acc);user-select:none;flex-shrink:0}
+.hsp{flex:1}
+.badge{font-size:.68rem;font-weight:700;padding:3px 9px;border-radius:20px;background:var(--sur2);color:var(--mut);border:1px solid var(--bdr);white-space:nowrap}
+/* Board */
+#board{display:flex;gap:13px;padding:14px;overflow-x:auto;overflow-y:hidden;flex:1;align-items:flex-start;-webkit-overflow-scrolling:touch}
+/* Column */
+.col{background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--r);width:var(--cw);min-width:var(--cw);max-height:calc(100dvh - 80px);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+/* Column header */
+.ch{display:flex;align-items:center;gap:7px;padding:11px 12px 8px;border-bottom:1px solid var(--bdr);flex-shrink:0}
+.cdot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.ctitle{font-size:.77rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--txt);flex:1;min-width:0}
+.ccount{font-size:.67rem;font-weight:700;background:var(--bdr);color:var(--mut);padding:1px 7px;border-radius:20px;flex-shrink:0}
+/* Column progress */
+.col-prog-wrap{padding:5px 12px 3px;flex-shrink:0}
+.col-prog-bar{height:3px;background:var(--bdr);border-radius:2px;overflow:hidden}
+.col-prog-fill{height:100%;background:var(--acc);transition:width .3s}
+.col-prog-label{display:flex;justify-content:space-between;font-size:.62rem;color:var(--mut);margin-bottom:2px}
+/* Cards area */
+.cards{display:flex;flex-direction:column;gap:7px;padding:9px;overflow-y:auto;flex:1}
+/* Card */
+.card{background:var(--sur);border:1px solid var(--bdr);border-left:3px solid var(--acc);border-radius:var(--rs);padding:9px 10px 20px;position:relative;user-select:none;cursor:default}
+/* Card text */
+.ctext{font-size:.83rem;line-height:1.55;color:var(--txt);word-break:break-word;white-space:pre-wrap}
+/* Subtasks */
+.subtasks{margin-top:7px;display:flex;flex-direction:column;gap:3px}
+.stask{display:flex;align-items:flex-start;gap:5px}
+.stask input[type=checkbox]{width:13px;height:13px;margin-top:2px;flex-shrink:0;accent-color:var(--acc);pointer-events:none}
+.st-lbl{flex:1;font-size:.77rem;line-height:1.4;color:var(--txt);word-break:break-word;white-space:pre-wrap}
+.stask.done .st-lbl{text-decoration:line-through;opacity:.4}
+/* Card footer */
+.cfoot{display:flex;align-items:center;gap:5px;margin-top:8px;flex-wrap:wrap}
+.clabel{display:inline-flex;align-items:center;font-size:.66rem;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap}
+.cstatus{font-size:.66rem;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--sur2);color:var(--mut);border:1px solid var(--bdr);white-space:nowrap}
+/* Progress in footer */
+.prog-row{display:flex;align-items:center;gap:4px;flex:1;min-width:70px}
+.prog-bar-wrap{flex:1;height:4px;background:var(--bdr);border-radius:2px;overflow:hidden;min-width:28px}
+.prog-fill{height:100%;background:var(--acc);border-radius:2px}
+.prog-pct{font-size:.65rem;font-weight:700;color:var(--mut);min-width:24px;text-align:right}
+/* Card progress strip */
+.cstrip{position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--bdr)}
+.cstrip-fill{height:100%;background:var(--acc)}
+/* Error / loading */
+.msg{padding:32px;color:var(--mut);font-size:.9rem}
+@media(max-width:580px){:root{--cw:270px}header{padding:8px 11px;gap:6px}#board{padding:10px;gap:10px}}
+</style>
+</head>
+<body>
+
+<header>
+  <span id="btitle">Loading…</span>
+  <span class="hsp"></span>
+  <span class="badge">read-only</span>
+</header>
+
+<div id="board"></div>
+
+<script>
+'use strict';
+
+function esc(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function cardProgress(card, progressMode) {
+  if (progressMode === 'auto' && card.subtasks && card.subtasks.length > 0) {
+    return Math.round(card.subtasks.filter(s => s.done).length / card.subtasks.length * 100);
+  }
+  return card.progress || 0;
+}
+
+function renderCard(card, container, board) {
+  const label  = (card.label  != null) ? board.labels[card.label]     : null;
+  const status = (card.status != null) ? board.statuses[card.status]  : null;
+  const pct    = cardProgress(card, board.progressMode);
+  const borderColor = label ? label.color : 'var(--acc)';
+
+  const el = document.createElement('div');
+  el.className = 'card';
+  el.style.borderLeftColor = borderColor;
+
+  let html = `<div class="ctext">${esc(card.text)}</div>`;
+
+  if (card.subtasks && card.subtasks.length > 0) {
+    html += '<div class="subtasks">';
+    for (const st of card.subtasks) {
+      html += `<div class="stask${st.done ? ' done' : ''}">
+        <input type="checkbox"${st.done ? ' checked' : ''} disabled>
+        <span class="st-lbl">${esc(st.text)}</span>
+      </div>`;
+    }
+    html += '</div>';
+  }
+
+  const footParts = [];
+  if (label)  footParts.push(`<span class="clabel" style="background:${label.bg};color:${label.fg}">${esc(label.name)}</span>`);
+  if (status) footParts.push(`<span class="cstatus">${esc(status)}</span>`);
+  if (pct > 0) footParts.push(
+    `<div class="prog-row">
+      <div class="prog-bar-wrap"><div class="prog-fill" style="width:${pct}%"></div></div>
+      <span class="prog-pct">${pct}%</span>
+    </div>`
+  );
+  if (footParts.length > 0) html += `<div class="cfoot">${footParts.join('')}</div>`;
+
+  html += `<div class="cstrip"><div class="cstrip-fill" style="width:${pct}%"></div></div>`;
+
+  el.innerHTML = html;
+  container.appendChild(el);
+}
+
+function renderBoard(board) {
+  document.title = board.title;
+  document.getElementById('btitle').textContent = '🗂 ' + board.title;
+
+  const boardEl = document.getElementById('board');
+  boardEl.innerHTML = '';
+
+  for (const col of board.columns) {
+    const totalPct = col.cards.reduce((sum, c) => sum + cardProgress(c, board.progressMode), 0);
+    const colPct   = col.cards.length > 0 ? Math.round(totalPct / col.cards.length) : 0;
+    const doneCount = col.cards.filter(c => cardProgress(c, board.progressMode) === 100).length;
+
+    const colEl = document.createElement('div');
+    colEl.className = 'col';
+    colEl.innerHTML = `
+      <div class="ch">
+        <span class="cdot" style="background:${col.color}"></span>
+        <span class="ctitle">${esc(col.name)}</span>
+        <span class="ccount">${col.cards.length}</span>
+      </div>
+      ${col.cards.length > 0 ? `
+      <div class="col-prog-wrap">
+        <div class="col-prog-label">
+          <span>${colPct}% done</span>
+          <span>${doneCount}/${col.cards.length}</span>
+        </div>
+        <div class="col-prog-bar">
+          <div class="col-prog-fill" style="width:${colPct}%"></div>
+        </div>
+      </div>` : ''}
+      <div class="cards"></div>
+    `;
+    boardEl.appendChild(colEl);
+
+    const cardsEl = colEl.querySelector('.cards');
+    for (const card of col.cards) renderCard(card, cardsEl, board);
+  }
+}
+
+async function init() {
+  try {
+    const res = await fetch('./resonara-project.board');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const board = await res.json();
+    renderBoard(board);
+  } catch (e) {
+    document.getElementById('btitle').textContent = 'Project Board';
+    document.getElementById('board').innerHTML =
+      `<div class="msg">Could not load board data: ${esc(e.message)}</div>`;
+  }
+}
+
+init();
+</script>
+</body>
+</html>
