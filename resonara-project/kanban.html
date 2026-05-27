@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kanban</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f0f2f5;--sur:#fff;--sur2:#f7f8fa;--bdr:#e2e8f0;
+  --acc:#6c63ff;--acc-bg:#ede9fe;--txt:#1e293b;--mut:#94a3b8;
+  --red:#ef4444;--r:12px;--rs:8px;--cw:305px;
+  --sh:0 1px 3px rgba(0,0,0,.07),0 4px 12px rgba(0,0,0,.05);
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--txt);height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+*{scrollbar-color:var(--bdr) transparent;scrollbar-width:thin}
+::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:2px}
+/* Header */
+header{display:flex;align-items:center;gap:9px;padding:10px 16px;background:var(--sur);border-bottom:1px solid var(--bdr);flex-shrink:0;min-height:52px}
+#btitle{font-size:.95rem;font-weight:700;color:var(--acc);cursor:pointer;user-select:none;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0}
+#btitle-in{font-size:.95rem;font-weight:700;background:var(--sur2);border:1.5px solid var(--acc);border-radius:6px;color:var(--txt);padding:2px 8px;outline:none;display:none;max-width:180px;font-family:inherit}
+#hfile{font-size:.7rem;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;flex-shrink:1}
+#hfile code{color:var(--acc);font-family:'SF Mono','Fira Mono',monospace;font-size:.67rem}
+.hsp{flex:1}
+#sstatus{font-size:.7rem;font-weight:700;padding:3px 8px;border-radius:20px;white-space:nowrap;transition:all .2s}
+.ss-ok{background:#dcfce7;color:#15803d}.ss-ing{background:#fef9c3;color:#a16207}.ss-err{background:#fee2e2;color:#b91c1c}
+.hbtn{display:inline-flex;align-items:center;gap:5px;padding:6px 11px;border:1px solid var(--bdr);border-radius:var(--rs);font-size:.78rem;font-weight:600;font-family:inherit;cursor:pointer;background:transparent;color:var(--mut);transition:all .12s;white-space:nowrap}
+.hbtn:hover{background:var(--sur2);color:var(--txt)}
+.hbtn.accent{background:var(--acc);border-color:var(--acc);color:#fff}.hbtn.accent:hover{background:#5a52e0}
+/* Board */
+#board{display:flex;gap:13px;padding:14px;overflow-x:auto;overflow-y:hidden;flex:1;align-items:flex-start;-webkit-overflow-scrolling:touch}
+/* Column */
+.col{background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--r);width:var(--cw);min-width:var(--cw);max-height:calc(100dvh - 80px);display:flex;flex-direction:column;flex-shrink:0;transition:box-shadow .12s,background .12s;overflow:hidden}
+.col.drop-hi{background:#f5f3ff;box-shadow:0 0 0 2px var(--acc)}
+/* Column header */
+.ch{display:flex;align-items:center;gap:7px;padding:11px 12px 8px;border-bottom:1px solid var(--bdr);flex-shrink:0}
+.cdot{width:9px;height:9px;border-radius:50%;cursor:pointer;flex-shrink:0;transition:transform .1s}.cdot:hover{transform:scale(1.4)}
+.ctitle{font-size:.77rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--txt);flex:1;cursor:text;outline:none;background:transparent;border:none;font-family:inherit;min-width:0}.ctitle:focus{color:var(--acc)}
+.ccount{font-size:.67rem;font-weight:700;background:var(--bdr);color:var(--mut);padding:1px 7px;border-radius:20px;flex-shrink:0}
+.cdel{background:none;border:none;color:var(--mut);cursor:pointer;font-size:.85rem;padding:2px 4px;border-radius:4px;opacity:0;transition:opacity .1s,color .1s;line-height:1}.ch:hover .cdel{opacity:1}.cdel:hover{color:var(--red)}
+/* Column progress */
+.col-prog-wrap{padding:5px 12px 3px;flex-shrink:0}
+.col-prog-bar{height:3px;background:var(--bdr);border-radius:2px;overflow:hidden}
+.col-prog-fill{height:100%;background:var(--acc);transition:width .3s}
+.col-prog-label{display:flex;justify-content:space-between;font-size:.62rem;color:var(--mut);margin-bottom:2px}
+/* Cards area */
+.cards{display:flex;flex-direction:column;gap:7px;padding:9px;overflow-y:auto;flex:1}
+/* Card */
+.card{background:var(--sur);border:1px solid var(--bdr);border-left:3px solid var(--cc,var(--acc));border-radius:var(--rs);padding:9px 10px 20px;position:relative;touch-action:none;user-select:none;transition:box-shadow .1s;cursor:default}
+.card:hover{box-shadow:var(--sh)}
+.card.dsrc{opacity:.15;pointer-events:none}
+/* Drag drop indicators */
+.card.dhi-before{border-top:2.5px solid var(--acc)}
+.card.dhi-after{border-bottom:2.5px solid var(--acc)}
+/* Card text */
+.ctext{font-size:.83rem;line-height:1.55;color:var(--txt);word-break:break-word;white-space:pre-wrap;margin-bottom:0}
+.card-edit-ta{width:100%;background:var(--sur2);border:1.5px solid var(--acc);border-radius:6px;color:var(--txt);font-family:inherit;font-size:.83rem;padding:5px 7px;resize:none;outline:none;line-height:1.55;display:block;min-height:36px}
+/* Subtasks */
+.subtasks{margin-top:7px;display:flex;flex-direction:column;gap:3px}
+.stask{display:flex;align-items:flex-start;gap:5px}
+.stask input[type=checkbox]{width:13px;height:13px;margin-top:2px;flex-shrink:0;cursor:pointer;accent-color:var(--acc)}
+.st-lbl{flex:1;font-size:.77rem;line-height:1.4;color:var(--txt);cursor:text;outline:none;word-break:break-word;white-space:pre-wrap}
+.stask.done .st-lbl{text-decoration:line-through;opacity:.4}
+.stask:hover .st-del{opacity:1}
+.st-del{background:none;border:none;color:var(--mut);cursor:pointer;font-size:.65rem;opacity:0;transition:opacity .1s;padding:0 2px;line-height:1;flex-shrink:0;margin-top:2px}
+.st-del:hover{color:var(--red)}
+.add-stask-row{display:flex;gap:4px;margin-top:5px;opacity:0;transition:opacity .1s}.card:hover .add-stask-row{opacity:1}
+.add-stask-row input{flex:1;background:var(--sur2);border:1px solid var(--bdr);border-radius:4px;color:var(--txt);font-family:inherit;font-size:.75rem;padding:3px 7px;outline:none}.add-stask-row input:focus{border-color:var(--acc)}
+.st-add-btn{background:none;border:none;color:var(--mut);cursor:pointer;font-size:.75rem;padding:2px 5px;border-radius:4px;line-height:1.2}.st-add-btn:hover{color:var(--acc)}
+/* Card footer */
+.cfoot{display:flex;align-items:center;gap:5px;margin-top:8px;flex-wrap:wrap}
+.clabel{display:inline-flex;align-items:center;font-size:.66rem;font-weight:700;padding:2px 7px;border-radius:20px;cursor:pointer;white-space:nowrap;transition:opacity .1s}.clabel:hover{opacity:.7}
+.cstatus{font-size:.66rem;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--sur2);color:var(--mut);cursor:pointer;border:1px solid var(--bdr);white-space:nowrap;transition:all .1s}.cstatus:hover{border-color:var(--acc);color:var(--acc)}
+/* Progress in footer */
+.prog-row{display:flex;align-items:center;gap:4px;flex:1;min-width:70px}
+.prog-bar-wrap{flex:1;height:4px;background:var(--bdr);border-radius:2px;overflow:hidden;min-width:28px}
+.prog-fill{height:100%;background:var(--acc);border-radius:2px;transition:width .25s}
+.prog-pct{font-size:.65rem;font-weight:700;color:var(--mut);min-width:24px;text-align:right}
+.prog-btns{display:flex;gap:2px;opacity:0;transition:opacity .1s}.card:hover .prog-btns{opacity:1}
+.pc{background:var(--sur2);border:1px solid var(--bdr);color:var(--mut);cursor:pointer;font-size:.62rem;padding:1px 4px;border-radius:3px;line-height:1.4;font-family:inherit}.pc:hover{color:var(--acc);border-color:var(--acc)}
+/* Card progress strip (bottom absolute) */
+.cstrip{position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--bdr)}
+.cstrip-fill{height:100%;background:var(--acc);transition:width .3s}
+/* Card actions */
+.cact{position:absolute;top:6px;right:6px;display:flex;gap:2px;opacity:0;transition:opacity .1s}.card:hover .cact{opacity:1}
+.cbtn{background:var(--sur2);border:1px solid var(--bdr);color:var(--mut);cursor:pointer;font-size:.67rem;padding:2px 5px;border-radius:4px;font-family:inherit;line-height:1.3;transition:all .1s}.cbtn:hover{color:var(--txt);background:var(--bdr)}.cbtn.del:hover{color:var(--red);border-color:var(--red)}
+/* Add card */
+.aca{padding:5px 9px 9px;flex-shrink:0}
+.acbtn{width:100%;background:transparent;border:1px dashed var(--bdr);color:var(--mut);border-radius:var(--rs);padding:7px;font-size:.78rem;font-family:inherit;cursor:pointer;transition:all .12s;display:flex;align-items:center;justify-content:center;gap:5px}
+.acbtn:hover{border-color:var(--acc);color:var(--acc);background:var(--acc-bg)}
+.acform{display:none;flex-direction:column;gap:6px}.acform.open{display:flex}
+.acform textarea{background:var(--sur2);border:1.5px solid var(--acc);border-radius:var(--rs);color:var(--txt);font-family:inherit;font-size:.83rem;padding:7px 9px;resize:none;outline:none;line-height:1.5;min-height:62px}
+.acform textarea::placeholder{color:var(--mut)}
+.frow{display:flex;align-items:center;gap:5px}
+.lpick{display:flex;gap:3px}
+.ldot{width:13px;height:13px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .1s}.ldot:hover{transform:scale(1.2)}.ldot.sel{border-color:#333}
+/* Add column */
+.acol-wrap{flex-shrink:0;display:flex;align-items:flex-start}
+.acol-btn{background:transparent;border:1px dashed var(--bdr);border-radius:var(--r);color:var(--mut);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:7px;padding:18px 14px;width:170px;font-size:.82rem;font-family:inherit;transition:all .12s}
+.acol-btn:hover{border-color:var(--acc);color:var(--acc);background:var(--acc-bg)}
+.acol-form{background:var(--sur);border:1px solid var(--acc);border-radius:var(--r);padding:12px;display:none;flex-direction:column;gap:8px;width:190px}
+.acol-form.open{display:flex}
+.acol-form input{background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--rs);color:var(--txt);font-family:inherit;font-size:.83rem;padding:6px 9px;outline:none;width:100%}.acol-form input:focus{border-color:var(--acc)}
+.crow{display:flex;gap:4px;flex-wrap:wrap}
+.csw{width:17px;height:17px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .1s}.csw:hover{transform:scale(1.15)}.csw.sel{border-color:#333}
+/* Generic btn */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:7px 13px;border:none;border-radius:var(--rs);font-size:.82rem;font-weight:600;font-family:inherit;cursor:pointer;transition:all .12s}
+.bp{background:var(--acc);color:#fff}.bp:hover{background:#5a52e0}
+.bg{background:transparent;color:var(--mut);border:1px solid var(--bdr)}.bg:hover{background:var(--sur2);color:var(--txt)}
+/* Settings panel */
+#sett{position:fixed;inset:0;z-index:150;pointer-events:none}
+#sett.open{pointer-events:all}
+#sett-bg{position:absolute;inset:0;background:rgba(0,0,0,.25);opacity:0;transition:opacity .2s}
+#sett.open #sett-bg{opacity:1}
+#sett-pnl{position:absolute;top:0;right:0;bottom:0;width:310px;max-width:92vw;background:var(--sur);border-left:1px solid var(--bdr);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .2s;box-shadow:-4px 0 20px rgba(0,0,0,.08)}
+#sett.open #sett-pnl{transform:none}
+.sph{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--bdr);flex-shrink:0}
+.sph h2{font-size:.95rem;font-weight:700}
+.sph-x{background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--mut);padding:3px 5px;border-radius:4px;line-height:1}.sph-x:hover{color:var(--txt)}
+.spbody{padding:16px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:20px}
+.sp-sec h3{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--mut);margin-bottom:9px}
+.sp-row{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+.sp-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0}
+.sp-in{flex:1;background:var(--sur2);border:1px solid var(--bdr);border-radius:var(--rs);color:var(--txt);font-family:inherit;font-size:.8rem;padding:4px 8px;outline:none}.sp-in:focus{border-color:var(--acc)}
+.sp-del{background:none;border:none;color:var(--mut);cursor:pointer;font-size:.75rem;padding:2px 4px;border-radius:3px;line-height:1}.sp-del:hover{color:var(--red)}
+.sp-add{background:none;border:1px dashed var(--bdr);color:var(--mut);border-radius:var(--rs);padding:4px 9px;font-size:.75rem;font-family:inherit;cursor:pointer;width:100%;margin-top:2px;transition:all .1s}.sp-add:hover{border-color:var(--acc);color:var(--acc)}
+.sp-sub{font-size:.72rem;color:var(--mut);line-height:1.5}
+/* Toast */
+#toast{position:fixed;bottom:16px;right:16px;background:#1e293b;border-radius:var(--rs);padding:7px 13px;font-size:.79rem;font-weight:600;color:#fff;transform:translateY(12px);opacity:0;transition:all .18s;z-index:500;pointer-events:none}
+#toast.show{opacity:1;transform:none}
+/* Drag ghost */
+.drag-ghost{position:fixed;opacity:.82;pointer-events:none;z-index:9999;transform:rotate(1deg) scale(1.02);box-shadow:0 8px 28px rgba(0,0,0,.14);border-radius:var(--rs);transition:none}
+@media(max-width:580px){:root{--cw:270px}header{padding:8px 11px;gap:6px}#hfile{display:none}#board{padding:10px;gap:10px}}
+</style>
+</head>
+<body>
+
+<header>
+  <span id="btitle">🗂 My Board</span>
+  <input id="btitle-in" type="text" maxlength="40">
+  <span id="hfile"></span>
+  <span class="hsp"></span>
+  <span id="sstatus"></span>
+  <button class="hbtn" id="hdr-link" title="Link / sync to a .board file">📎 Link file</button>
+  <button class="hbtn" id="hdr-saveas" title="Save a copy as .board file">💾 Save As</button>
+  <button class="hbtn" id="hdr-sett" title="Settings">⚙</button>
+</header>
+
+<div id="board">
+  <div class="acol-wrap" id="acol-wrap">
+    <button class="acol-btn" id="acol-btn"><span style="font-size:1.3rem">＋</span>Add Column</button>
+    <div class="acol-form" id="acol-form">
+      <input id="ncol-name" placeholder="Column name…" maxlength="30">
+      <div>
+        <div style="font-size:.68rem;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">Color</div>
+        <div class="crow" id="ccrow"></div>
+      </div>
+      <div style="display:flex;gap:5px">
+        <button class="btn bp" style="flex:1;padding:6px 9px;font-size:.8rem" id="ccol-ok">Add</button>
+        <button class="btn bg" style="padding:6px 9px;font-size:.8rem" id="ccol-no">✕</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Settings panel -->
+<div id="sett">
+  <div id="sett-bg"></div>
+  <div id="sett-pnl">
+    <div class="sph">
+      <h2>⚙ Settings</h2>
+      <button class="sph-x" id="sett-close">✕</button>
+    </div>
+    <div class="spbody">
+      <div class="sp-sec">
+        <h3>Labels</h3>
+        <div id="sp-labels"></div>
+      </div>
+      <div class="sp-sec">
+        <h3>Statuses</h3>
+        <div id="sp-statuses"></div>
+        <button class="sp-add" id="sp-add-status">＋ Add status</button>
+      </div>
+      <div class="sp-sec">
+        <h3>Progress mode</h3>
+        <p class="sp-sub">When cards have subtasks, should progress be calculated automatically?</p>
+        <div style="display:flex;gap:7px;margin-top:8px">
+          <button class="btn bg" style="flex:1;font-size:.78rem;padding:6px" id="prog-manual">Manual</button>
+          <button class="btn bg" style="flex:1;font-size:.78rem;padding:6px" id="prog-auto">Auto (subtasks)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+
+// ── Constants ─────────────────────────────────────────────────
+const COLORS = ['#6c63ff','#a78bfa','#38bdf8','#34d399','#fbbf24','#f97316','#ef4444','#ec4899','#64748b'];
+const DEFAULT_LABELS = [
+  {name:'Purple', color:'#6c63ff', bg:'#ede9fe', fg:'#4f46e5'},
+  {name:'Blue',   color:'#38bdf8', bg:'#dbeafe', fg:'#1d4ed8'},
+  {name:'Green',  color:'#34d399', bg:'#dcfce7', fg:'#15803d'},
+  {name:'Yellow', color:'#fbbf24', bg:'#fef9c3', fg:'#a16207'},
+  {name:'Red',    color:'#ef4444', bg:'#fee2e2', fg:'#b91c1c'},
+  {name:'Pink',   color:'#ec4899', bg:'#fce7f3', fg:'#be185d'},
+];
+const DEFAULT_STATUSES = ['Not started','In progress','Blocked','Complete'];
+
+// ── State ────────────────────────────────────────────────────
+let S = mkDefault();
+let fileHandle = null;
+let saveTimer  = null;
+let drag       = null;
+let newColColor = COLORS[0];
+
+function mkDefault() {
+  return {
+    v: 2, title: 'My Board',
+    labels: JSON.parse(JSON.stringify(DEFAULT_LABELS)),
+    statuses: [...DEFAULT_STATUSES],
+    progressMode: 'manual', // 'manual' | 'auto'
+    columns: [
+      {id:uid(),name:'Backlog',    color:'#64748b',cards:[]},
+      {id:uid(),name:'To Do',     color:'#6c63ff',cards:[]},
+      {id:uid(),name:'In Progress',color:'#fbbf24',cards:[]},
+      {id:uid(),name:'Done',      color:'#34d399',cards:[]},
+    ]
+  };
+}
+
+function uid() { return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+
+// ── IndexedDB (file handle) ──────────────────────────────────
+const IDB = {
+  _p: null,
+  db() {
+    if (!this._p) this._p = new Promise((res,rej)=>{
+      const r = indexedDB.open('kanban4',1);
+      r.onupgradeneeded = e => e.target.result.createObjectStore('kv');
+      r.onsuccess = e => res(e.target.result);
+      r.onerror   = e => rej(e.target.error);
+    });
+    return this._p;
+  },
+  async get(k) { const db=await this.db(); return new Promise((res,rej)=>{ const r=db.transaction('kv','readonly').objectStore('kv').get(k); r.onsuccess=e=>res(e.target.result); r.onerror=e=>rej(e.target.error); }); },
+  async set(k,v) { const db=await this.db(); return new Promise((res,rej)=>{ const tx=db.transaction('kv','readwrite'); tx.objectStore('kv').put(v,k); tx.oncomplete=res; tx.onerror=e=>rej(e.target.error); }); },
+  async del(k) { const db=await this.db(); return new Promise((res,rej)=>{ const tx=db.transaction('kv','readwrite'); tx.objectStore('kv').delete(k); tx.oncomplete=res; tx.onerror=rej; }); }
+};
+
+// ── LocalStorage ─────────────────────────────────────────────
+function lsSave() { try { localStorage.setItem('kanban4',JSON.stringify(S)); } catch{} }
+function lsLoad() { try { const d=localStorage.getItem('kanban4'); if(d){ S=JSON.parse(d); migrate(); return true; } } catch{} return false; }
+
+function migrate() {
+  // Ensure new fields exist on old data
+  if (!S.labels) S.labels = JSON.parse(JSON.stringify(DEFAULT_LABELS));
+  if (!S.statuses) S.statuses = [...DEFAULT_STATUSES];
+  if (!S.progressMode) S.progressMode = 'manual';
+  for (const col of S.columns) {
+    for (const c of col.cards) {
+      if (!c.subtasks) c.subtasks = [];
+      if (c.progress == null) c.progress = 0;
+      if (c.status == null) c.status = null;
+      if (c.label == null) c.label = null;
+    }
+  }
+}
+
+// ── File I/O ─────────────────────────────────────────────────
+const FS = 'showOpenFilePicker' in window;
+
+async function fileRead(h)  { return (await h.getFile()).text(); }
+async function fileWrite(h,t){ const w=await h.createWritable(); await w.write(t); await w.close(); }
+async function checkPerm(h) {
+  if ((await h.queryPermission({mode:'readwrite'})) === 'granted') return true;
+  return (await h.requestPermission({mode:'readwrite'})) === 'granted';
+}
+
+async function tryAutoLink(lsWasEmpty) {
+  if (!FS) return;
+  try {
+    const h = await IDB.get('fh');
+    if (!h) return;
+    await h.getFile(); // throws if file gone
+    const perm = await h.queryPermission({mode:'readwrite'});
+    if (perm === 'granted') {
+      fileHandle = h;
+      setHFile(h.name);
+      if (lsWasEmpty) {
+        // No localStorage data — load the board from the linked file
+        try {
+          const txt = await fileRead(h);
+          const loaded = JSON.parse(txt);
+          if (loaded.v && loaded.columns) {
+            S = loaded; migrate(); lsSave(); render();
+            document.getElementById('btitle').textContent = '🗂 ' + S.title;
+            setStatus('ss-ok', '✓ Loaded from file');
+            return;
+          }
+        } catch {}
+      }
+      // localStorage had data — write it to file (localStorage is source of truth)
+      await fileWrite(h, JSON.stringify(S, null, 2));
+      setStatus('ss-ok', '✓ Synced');
+    } else {
+      // Permission needs re-granting — show a one-click reconnect hint
+      setHFile(h.name, true);
+    }
+  } catch { try { await IDB.del('fh'); } catch {} }
+}
+
+// ── Save ─────────────────────────────────────────────────────
+function setStatus(cls, msg) { const e=document.getElementById('sstatus'); e.className=cls; e.textContent=msg; }
+
+function dirty() {
+  setStatus('ss-ing','● Saving…');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async ()=>{
+    lsSave();
+    if (fileHandle) {
+      try { await fileWrite(fileHandle, JSON.stringify(S,null,2)); setStatus('ss-ok','✓ Saved'); }
+      catch(e) { setStatus('ss-err','⚠ File error'); toast('Write failed: '+e.message); }
+    } else {
+      setStatus('ss-ok','✓ Saved (local)');
+    }
+  }, 500);
+}
+
+// ── Header ───────────────────────────────────────────────────
+function setHFile(name, needsReconnect=false) {
+  const el = document.getElementById('hfile');
+  if (name) el.innerHTML = needsReconnect
+    ? `<span style="color:var(--mut);font-size:.68rem">🔗 <code>${esc(name)}</code> <button onclick="reconnectFile()" style="background:none;border:none;color:var(--acc);cursor:pointer;font-size:.68rem;font-weight:700">Reconnect</button></span>`
+    : `<code>${esc(name)}</code>`;
+  else el.innerHTML = '<span style="font-style:italic;font-size:.7rem">local only</span>';
+}
+
+window.reconnectFile = async () => {
+  try {
+    const h = await IDB.get('fh');
+    if (!h) return;
+    if (!await checkPerm(h)) { toast('Permission denied'); return; }
+    fileHandle = h;
+    setHFile(h.name);
+    dirty();
+  } catch(e) { toast(e.message); }
+};
+
+document.getElementById('hdr-link').onclick = async () => {
+  if (!FS) { toast('File System API not supported in this browser'); return; }
+  try {
+    const [h] = await showOpenFilePicker({types:[{description:'Board file',accept:{'application/json':['.board','.json']}}]});
+    if (!await checkPerm(h)) { toast('Permission denied'); return; }
+    const txt = await fileRead(h);
+    try {
+      const loaded = JSON.parse(txt);
+      if (loaded.v && loaded.columns) {
+        S = loaded; migrate();
+      }
+    } catch { toast('Invalid .board file — keeping current data and linking'); }
+    fileHandle = h;
+    await IDB.set('fh', h);
+    setHFile(h.name);
+    dirty(); render();
+    toast('Linked to '+h.name);
+  } catch(e) { if(e.name!=='AbortError') toast(e.message); }
+};
+
+document.getElementById('hdr-saveas').onclick = async () => {
+  const json = JSON.stringify(S,null,2);
+  if (!FS) {
+    const a = Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([json],{type:'application/json'})),download:'board.board'});
+    a.click(); toast('Downloaded board.board'); return;
+  }
+  try {
+    const h = await showSaveFilePicker({suggestedName:'board.board',types:[{description:'Board file',accept:{'application/json':['.board','.json']}}]});
+    await fileWrite(h, json);
+    fileHandle = h;
+    await IDB.set('fh', h);
+    setHFile(h.name);
+    setStatus('ss-ok','✓ Saved');
+    toast('Saved as '+h.name);
+  } catch(e) { if(e.name!=='AbortError') toast(e.message); }
+};
+
+// ── Board title rename ────────────────────────────────────────
+document.getElementById('btitle').onclick = () => {
+  const inp = document.getElementById('btitle-in');
+  inp.value = S.title;
+  document.getElementById('btitle').style.display = 'none';
+  inp.style.display = 'block'; inp.focus(); inp.select();
+};
+function commitTitle() {
+  const inp = document.getElementById('btitle-in');
+  const v = inp.value.trim(); if(v) S.title=v;
+  inp.style.display='none';
+  const h=document.getElementById('btitle'); h.style.display=''; h.textContent='🗂 '+S.title;
+  dirty();
+}
+document.getElementById('btitle-in').addEventListener('blur',commitTitle);
+document.getElementById('btitle-in').addEventListener('keydown',e=>{
+  if(e.key==='Enter') { e.preventDefault(); commitTitle(); }
+  if(e.key==='Escape') { document.getElementById('btitle-in').style.display='none'; document.getElementById('btitle').style.display=''; }
+});
+
+// ── Settings panel ────────────────────────────────────────────
+const settEl = document.getElementById('sett');
+document.getElementById('hdr-sett').onclick = openSett;
+document.getElementById('sett-close').onclick = closeSett;
+document.getElementById('sett-bg').onclick = closeSett;
+
+function openSett() { renderSett(); settEl.classList.add('open'); }
+function closeSett() { settEl.classList.remove('open'); }
+
+function renderSett() {
+  // Labels
+  const lb = document.getElementById('sp-labels');
+  lb.innerHTML = '';
+  S.labels.forEach((lbl,i) => {
+    const row = document.createElement('div'); row.className='sp-row';
+    row.innerHTML = `<span class="sp-dot" style="background:${lbl.color}"></span>
+      <input class="sp-in" value="${esc(lbl.name)}" data-li="${i}" placeholder="Label name">
+      <span style="background:${lbl.bg};color:${lbl.fg};font-size:.65rem;font-weight:700;padding:2px 6px;border-radius:12px">${esc(lbl.name)}</span>`;
+    const inp = row.querySelector('input');
+    inp.addEventListener('input', () => { S.labels[i].name=inp.value; row.querySelector('span:last-child').textContent=inp.value; dirty(); });
+    lb.appendChild(row);
+  });
+
+  // Statuses
+  const sb = document.getElementById('sp-statuses');
+  sb.innerHTML = '';
+  S.statuses.forEach((st,i) => {
+    const row = document.createElement('div'); row.className='sp-row';
+    row.innerHTML = `<input class="sp-in" value="${esc(st)}" data-si="${i}" placeholder="Status name">
+      <button class="sp-del" data-sdel="${i}">✕</button>`;
+    const inp = row.querySelector('input');
+    inp.addEventListener('input', ()=>{ S.statuses[i]=inp.value; dirty(); });
+    row.querySelector('button').onclick = () => {
+      if(S.statuses.length<=1){toast('Need at least 1 status');return;}
+      S.statuses.splice(i,1);
+      // Fix card status indices
+      for(const col of S.columns) for(const c of col.cards) if(c.status>=i) c.status=Math.max(0,c.status-1);
+      dirty(); renderSett(); render();
+    };
+    sb.appendChild(row);
+  });
+
+  // Progress mode buttons
+  document.getElementById('prog-manual').classList.toggle('bp', S.progressMode==='manual');
+  document.getElementById('prog-manual').classList.toggle('bg', S.progressMode!=='manual');
+  document.getElementById('prog-auto').classList.toggle('bp', S.progressMode==='auto');
+  document.getElementById('prog-auto').classList.toggle('bg', S.progressMode!=='auto');
+}
+
+document.getElementById('sp-add-status').onclick = () => {
+  S.statuses.push('New status');
+  dirty(); renderSett(); render();
+};
+
+document.getElementById('prog-manual').onclick = () => { S.progressMode='manual'; dirty(); renderSett(); render(); };
+document.getElementById('prog-auto').onclick   = () => { S.progressMode='auto';   dirty(); renderSett(); render(); };
+
+// ── Add column ────────────────────────────────────────────────
+const ccrow = document.getElementById('ccrow');
+COLORS.forEach((c,i)=>{
+  const sw=document.createElement('span'); sw.className='csw'+(i===0?' sel':''); sw.style.background=c;
+  sw.onclick=()=>{ newColColor=c; ccrow.querySelectorAll('.csw').forEach((s,j)=>s.classList.toggle('sel',j===i)); };
+  ccrow.appendChild(sw);
+});
+document.getElementById('acol-btn').onclick = ()=>{ document.getElementById('acol-btn').style.display='none'; document.getElementById('acol-form').classList.add('open'); document.getElementById('ncol-name').focus(); };
+document.getElementById('ccol-no').onclick = closeColForm;
+document.getElementById('ccol-ok').onclick = submitCol;
+document.getElementById('ncol-name').addEventListener('keydown',e=>{ if(e.key==='Enter'){e.preventDefault();submitCol();} if(e.key==='Escape') closeColForm(); });
+function closeColForm(){ document.getElementById('acol-form').classList.remove('open'); document.getElementById('ncol-name').value=''; document.getElementById('acol-btn').style.display=''; }
+function submitCol(){ const n=document.getElementById('ncol-name').value.trim(); if(!n) return; S.columns.push({id:uid(),name:n,color:newColColor,cards:[]}); closeColForm(); dirty(); render(); toast('Column added'); }
+
+// ── Render ────────────────────────────────────────────────────
+function render() {
+  const board=document.getElementById('board');
+  const wrap=document.getElementById('acol-wrap');
+  board.querySelectorAll('.col').forEach(el=>el.remove());
+  document.getElementById('btitle').textContent='🗂 '+S.title;
+  for(const col of S.columns) board.insertBefore(buildCol(col),wrap);
+}
+
+function colProgress(col) {
+  if(!col.cards.length) return null;
+  const pcts = col.cards.map(c=>effectiveProgress(c));
+  return Math.round(pcts.reduce((a,b)=>a+b,0)/pcts.length);
+}
+
+function effectiveProgress(card) {
+  if(S.progressMode==='auto' && card.subtasks.length>0) {
+    return Math.round(card.subtasks.filter(s=>s.done).length/card.subtasks.length*100);
+  }
+  return card.progress||0;
+}
+
+function buildCol(col) {
+  const el=document.createElement('div');
+  el.className='col'; el.dataset.colId=col.id;
+  el.style.setProperty('--cc',col.color);
+  const prog=colProgress(col);
+  el.innerHTML=`
+    <div class="ch">
+      <span class="cdot" style="background:${col.color}" data-cycle="${col.id}"></span>
+      <div class="ctitle" contenteditable spellcheck="false" data-ctitle="${col.id}">${esc(col.name)}</div>
+      <span class="ccount">${col.cards.length}</span>
+      <button class="cdel" data-dcol="${col.id}">✕</button>
+    </div>
+    ${prog!=null?`
+    <div class="col-prog-wrap">
+      <div class="col-prog-label"><span>Progress</span><span>${prog}%</span></div>
+      <div class="col-prog-bar"><div class="col-prog-fill" style="width:${prog}%"></div></div>
+    </div>`:''}
+    <div class="cards" id="cl-${col.id}" data-col="${col.id}"></div>
+    <div class="aca">
+      <button class="acbtn" data-openf="${col.id}">＋ Add card</button>
+      <div class="acform" id="af-${col.id}">
+        <textarea id="ta-${col.id}" placeholder="Card text… (Enter to add, Shift+Enter for newline)" rows="3" maxlength="800"></textarea>
+        <div class="frow">
+          <div class="lpick" id="lp-${col.id}"></div>
+          <span style="flex:1"></span>
+          <button class="btn bg" style="padding:5px 8px;font-size:.77rem" data-closef="${col.id}">✕</button>
+          <button class="btn bp" style="padding:5px 10px;font-size:.77rem" data-addc="${col.id}">Add</button>
+        </div>
+      </div>
+    </div>`;
+  // Label picker
+  const lp=el.querySelector(`#lp-${col.id}`);
+  lp._sel=null;
+  [{name:'none',color:'#e2e8f0'},...S.labels].forEach((l,i)=>{
+    const ii=i-1; // -1 = none
+    const d=document.createElement('span'); d.className='ldot'+(lp._sel===ii?' sel':'');
+    d.style.background=l.color; d.title=l.name;
+    d.onclick=()=>{ lp._sel=ii<0?null:ii; lp.querySelectorAll('.ldot').forEach((x,j)=>x.classList.toggle('sel',j===i)); };
+    lp.appendChild(d);
+  });
+  // Cards
+  const cl=el.querySelector(`#cl-${col.id}`);
+  col.cards.forEach(c=>cl.appendChild(buildCard(c,col)));
+  return el;
+}
+
+function buildCard(card,col) {
+  const el=document.createElement('div');
+  el.className='card'; el.dataset.cardId=card.id;
+  el.style.setProperty('--cc',col.color);
+
+  const lbl = card.label!=null ? S.labels[card.label] : null;
+  const st  = card.status!=null ? S.statuses[card.status] : null;
+  const pct = effectiveProgress(card);
+
+  el.innerHTML=`
+    <div class="cact">
+      <button class="cbtn del" data-dcard="${card.id}">✕</button>
+    </div>
+    <div class="ctext" data-card-text="${card.id}">${esc(card.text)}</div>
+    <div class="subtasks" id="st-${card.id}"></div>
+    <div class="add-stask-row">
+      <input id="stinp-${card.id}" placeholder="Add subtask…" maxlength="200">
+      <button class="st-add-btn" data-addst="${card.id}">＋</button>
+    </div>
+    <div class="cfoot">
+      ${lbl?`<span class="clabel" style="background:${lbl.bg};color:${lbl.fg}" data-cycle-lbl="${card.id}">${esc(lbl.name)}</span>`:''}
+      ${st!=null?`<span class="cstatus" data-cycle-st="${card.id}">${esc(st)}</span>`:`<span class="cstatus" style="opacity:.5" data-cycle-st="${card.id}">Set status</span>`}
+      <div class="prog-row">
+        <div class="prog-bar-wrap"><div class="prog-fill" style="width:${pct}%"></div></div>
+        <span class="prog-pct">${pct}%</span>
+        <div class="prog-btns">
+          <button class="pc" data-pp="${card.id}" data-delta="-10">−10</button>
+          <button class="pc" data-pp="${card.id}" data-delta="-5">−5</button>
+          <button class="pc" data-pp="${card.id}" data-delta="5">+5</button>
+          <button class="pc" data-pp="${card.id}" data-delta="10">+10</button>
+        </div>
+      </div>
+    </div>
+    <div class="cstrip"><div class="cstrip-fill" style="width:${pct}%"></div></div>`;
+
+  // Subtasks
+  const stCont = el.querySelector(`#st-${card.id}`);
+  card.subtasks.forEach(st=>stCont.appendChild(buildSubtask(st,card)));
+
+  // Drag / click handling
+  el.addEventListener('pointerdown', e=>onPD(e,el,card,col));
+
+  return el;
+}
+
+function buildSubtask(st,card) {
+  const el=document.createElement('div');
+  el.className='stask'+(st.done?' done':'');
+  el.dataset.stId=st.id;
+
+  const lbl=document.createElement('span');
+  lbl.className='st-lbl'; lbl.textContent=st.text;
+  lbl.contentEditable='true'; lbl.spellcheck=false;
+
+  lbl.addEventListener('keydown',e=>{
+    if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();lbl.blur();}
+    if(e.key==='Escape'){lbl.textContent=st.text;lbl.blur();}
+  });
+  lbl.addEventListener('blur',()=>{
+    const v=lbl.textContent.trim(); if(v) st.text=v; else lbl.textContent=st.text;
+    dirty();
+  });
+  // Stop pointerdown from triggering card drag
+  lbl.addEventListener('pointerdown',e=>e.stopPropagation());
+
+  const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=st.done;
+  cb.addEventListener('change',()=>{
+    st.done=cb.checked;
+    el.classList.toggle('done',st.done);
+    if(S.progressMode==='auto') { dirty(); render(); } else dirty();
+  });
+
+  const del=document.createElement('button'); del.className='st-del'; del.textContent='✕';
+  del.addEventListener('click',e=>{
+    e.stopPropagation();
+    const c=findCard(card.id).card; if(!c) return;
+    c.subtasks=c.subtasks.filter(s=>s.id!==st.id);
+    dirty(); render();
+  });
+
+  el.appendChild(cb); el.appendChild(lbl); el.appendChild(del);
+  return el;
+}
+
+// ── Board event delegation ────────────────────────────────────
+document.getElementById('board').addEventListener('click',e=>{
+  const t=e.target;
+  const openf=t.closest('[data-openf]'); if(openf){openCF(openf.dataset.openf);return;}
+  const closef=t.closest('[data-closef]'); if(closef){closeCF(closef.dataset.closef);return;}
+  const addc=t.closest('[data-addc]'); if(addc){submitCard(addc.dataset.addc);return;}
+  const dcard=t.closest('[data-dcard]'); if(dcard){delCard(dcard.dataset.dcard);return;}
+  const dcol=t.closest('[data-dcol]'); if(dcol){delCol(dcol.dataset.dcol);return;}
+  const cycle=t.closest('[data-cycle]'); if(cycle){cycleColColor(cycle.dataset.cycle);return;}
+  const addst=t.closest('[data-addst]'); if(addst){doAddSubtask(addst.dataset.addst);return;}
+  // Progress adjust
+  const pp=t.closest('[data-pp]');
+  if(pp){
+    const {card}=findCard(pp.dataset.pp); if(!card) return;
+    if(S.progressMode==='auto'){toast('Progress is automatic (subtasks mode)');return;}
+    card.progress=Math.max(0,Math.min(100,(card.progress||0)+parseInt(pp.dataset.delta)));
+    dirty(); render(); return;
+  }
+  // Cycle status
+  const cst=t.closest('[data-cycle-st]');
+  if(cst){
+    const {card}=findCard(cst.dataset.cycleSt); if(!card) return;
+    card.status = card.status==null ? 0 : (card.status+1)%S.statuses.length;
+    dirty(); render(); return;
+  }
+  // Cycle label
+  const clbl=t.closest('[data-cycle-lbl]');
+  if(clbl){
+    const {card}=findCard(clbl.dataset.cycleLbl); if(!card) return;
+    card.label = card.label==null ? 0 : card.label>=S.labels.length-1 ? null : card.label+1;
+    dirty(); render(); return;
+  }
+});
+
+// Column title rename
+document.getElementById('board').addEventListener('blur',e=>{
+  const el=e.target.closest('[data-ctitle]'); if(!el) return;
+  const col=findCol(el.dataset.ctitle); if(!col) return;
+  const name=el.textContent.trim(); col.name=name||col.name; el.textContent=col.name;
+  dirty();
+},true);
+document.getElementById('board').addEventListener('keydown',e=>{
+  const ct=e.target.closest('[data-ctitle]');
+  if(ct&&e.key==='Enter'){e.preventDefault();ct.blur();return;}
+  if(ct&&e.key==='Escape'){ct.blur();return;}
+  // Add-card textarea: Enter = submit, Shift+Enter = newline
+  const ta=e.target;
+  if(ta.tagName==='TEXTAREA'&&ta.closest('.acform')){
+    if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();const col=ta.closest('.col');if(col)submitCard(col.dataset.colId);}
+    if(e.key==='Escape'){const col=ta.closest('.col');if(col)closeCF(col.dataset.colId);}
+    return;
+  }
+  // Subtask input: Enter = add
+  if(ta.tagName==='INPUT'&&ta.closest('.add-stask-row')&&e.key==='Enter'){
+    const btn=ta.closest('.add-stask-row').querySelector('[data-addst]');
+    if(btn) doAddSubtask(btn.dataset.addst);
+    return;
+  }
+});
+
+// ── Card form helpers ─────────────────────────────────────────
+function openCF(colId){
+  document.getElementById(`af-${colId}`).classList.add('open');
+  document.querySelector(`[data-openf="${colId}"]`).style.display='none';
+  document.getElementById(`ta-${colId}`).focus();
+}
+function closeCF(colId){
+  document.getElementById(`af-${colId}`).classList.remove('open');
+  document.getElementById(`ta-${colId}`).value='';
+  const lp=document.getElementById(`lp-${colId}`);
+  if(lp){lp._sel=null;lp.querySelectorAll('.ldot').forEach((d,j)=>d.classList.toggle('sel',j===0));}
+  document.querySelector(`[data-openf="${colId}"]`).style.display='';
+}
+function submitCard(colId){
+  const ta=document.getElementById(`ta-${colId}`);
+  const txt=ta.value.trim(); if(!txt) return;
+  const lp=document.getElementById(`lp-${colId}`);
+  const col=findCol(colId); if(!col) return;
+  col.cards.push({id:uid(),text:txt,label:lp?._sel??null,status:null,progress:0,subtasks:[]});
+  closeCF(colId); dirty(); render(); toast('Card added');
+}
+
+// ── Subtask helpers ───────────────────────────────────────────
+function doAddSubtask(cardId){
+  const inp=document.getElementById(`stinp-${cardId}`);
+  const txt=inp.value.trim(); if(!txt) return;
+  const {card}=findCard(cardId); if(!card) return;
+  card.subtasks.push({id:uid(),text:txt,done:false});
+  inp.value='';
+  dirty(); render();
+  // Re-focus input after render
+  setTimeout(()=>{ const ni=document.getElementById(`stinp-${cardId}`); if(ni) ni.focus(); },0);
+}
+
+// ── Mutations ─────────────────────────────────────────────────
+function delCard(id){
+  for(const col of S.columns){const i=col.cards.findIndex(c=>c.id===id);if(i>=0){col.cards.splice(i,1);break;}}
+  dirty(); render(); toast('Card deleted');
+}
+function delCol(id){
+  const col=findCol(id); if(!col) return;
+  if(col.cards.length&&!confirm(`Delete "${col.name}" and its ${col.cards.length} card(s)?`)) return;
+  S.columns=S.columns.filter(c=>c.id!==id);
+  dirty(); render(); toast('Column deleted');
+}
+function cycleColColor(id){
+  const col=findCol(id); if(!col) return;
+  col.color=COLORS[(COLORS.indexOf(col.color)+1)%COLORS.length];
+  dirty(); render();
+}
+
+// ── Card click-to-edit + drag ─────────────────────────────────
+function onPD(e, cardEl, card, col) {
+  // Ignore if target is an interactive element inside the card
+  if (e.target.closest('.cbtn,.pc,.cstatus,.clabel,.add-stask-row,.stask,.cact,.cstrip')) return;
+  if (e.pointerType==='mouse' && e.button!==0) return;
+  e.preventDefault();
+
+  const sx=e.clientX, sy=e.clientY;
+  let moved=false, dragStarted=false;
+  let ghost=null;
+
+  function cleanup(){
+    document.removeEventListener('pointermove',onMove);
+    document.removeEventListener('pointerup',onUp);
+    document.removeEventListener('pointercancel',onUp);
+  }
+
+  function onMove(ev){
+    const dx=ev.clientX-sx, dy=ev.clientY-sy;
+    if(!moved && Math.hypot(dx,dy)<6) return;
+    moved=true;
+    if(!dragStarted){
+      dragStarted=true;
+      // Create ghost
+      const r=cardEl.getBoundingClientRect();
+      ghost=cardEl.cloneNode(true);
+      ghost.className='card drag-ghost';
+      ghost.style.cssText=`width:${r.width}px;left:${r.left}px;top:${r.top}px;`;
+      ghost.querySelectorAll('.cact,.add-stask-row,.prog-btns').forEach(x=>x.remove());
+      document.body.appendChild(ghost);
+      cardEl.classList.add('dsrc');
+      drag={cardId:card.id,colId:col.id,cardEl,ghost,ox:ev.clientX-r.left,oy:ev.clientY-r.top};
+    }
+    if(ghost){
+      ghost.style.left=(ev.clientX-drag.ox)+'px';
+      ghost.style.top =(ev.clientY-drag.oy)+'px';
+    }
+    updateDropIndicators(ev.clientX,ev.clientY,card.id);
+  }
+
+  function onUp(ev){
+    cleanup();
+    if(ghost){ ghost.remove(); ghost=null; }
+    cardEl.classList.remove('dsrc');
+    clearDI();
+
+    if(!moved){
+      // Click — activate inline edit
+      activateCardEdit(cardEl,card);
+      return;
+    }
+    // Drop
+    if(drag) {
+      const {colId:fromColId,cardId}=drag;
+      drag=null;
+      doDropCard(ev.clientX,ev.clientY,cardId,fromColId);
+    }
+  }
+
+  document.addEventListener('pointermove',onMove,{passive:false});
+  document.addEventListener('pointerup',onUp);
+  document.addEventListener('pointercancel',onUp);
+}
+
+function activateCardEdit(cardEl, card){
+  if(cardEl.classList.contains('editing')) return;
+  cardEl.classList.add('editing');
+  const textDiv=cardEl.querySelector('.ctext');
+  const ta=document.createElement('textarea');
+  ta.className='card-edit-ta';
+  ta.value=card.text;
+  cardEl.insertBefore(ta,textDiv);
+  textDiv.style.display='none';
+  ta.style.height='auto'; ta.style.height=ta.scrollHeight+'px';
+  ta.addEventListener('input',()=>{ ta.style.height='auto'; ta.style.height=ta.scrollHeight+'px'; });
+  ta.focus(); ta.setSelectionRange(ta.value.length,ta.value.length);
+
+  function commit(){
+    const v=ta.value.trim(); if(v) card.text=v;
+    ta.remove(); textDiv.style.display=''; textDiv.textContent=card.text;
+    cardEl.classList.remove('editing');
+    dirty();
+  }
+  function cancel(){ ta.remove(); textDiv.style.display=''; cardEl.classList.remove('editing'); }
+
+  ta.addEventListener('keydown',e=>{
+    if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();commit();}
+    if(e.key==='Escape'){e.preventDefault();cancel();}
+  });
+  ta.addEventListener('blur',commit);
+  // Prevent card drag while editing
+  ta.addEventListener('pointerdown',e=>e.stopPropagation());
+}
+
+// ── Drag-and-drop ─────────────────────────────────────────────
+function updateDropIndicators(x,y,draggingId){
+  clearDI();
+  const col=findColAtX(x); if(!col) return;
+  col.classList.add('drop-hi');
+  const cl=col.querySelector('.cards');
+  const cards=[...cl.querySelectorAll('.card:not(.dsrc)')];
+  let after=null;
+  for(const c of cards){
+    const r=c.getBoundingClientRect();
+    if(y<r.top+r.height/2){c.classList.add('dhi-before');after=c;break;}
+    after=null;
+  }
+  if(!after&&cards.length) cards[cards.length-1].classList.add('dhi-after');
+}
+
+function findColAtX(x){
+  const cols=[...document.querySelectorAll('.col')];
+  for(const c of cols){ const r=c.getBoundingClientRect(); if(x>=r.left&&x<=r.right) return c; }
+  // Closest
+  let best=null,min=Infinity;
+  for(const c of cols){ const r=c.getBoundingClientRect(); const cx=r.left+r.width/2; const d=Math.abs(x-cx); if(d<min){min=d;best=c;} }
+  return best;
+}
+
+function doDropCard(x,y,cardId,fromColId){
+  const colEl=findColAtX(x); if(!colEl) return;
+  const toColId=colEl.dataset.colId;
+  const cl=colEl.querySelector('.cards');
+  const cards=[...cl.querySelectorAll('.card:not(.dsrc)')];
+
+  const fromCol=findCol(fromColId), toCol=findCol(toColId);
+  if(!fromCol||!toCol) return;
+  const fi=fromCol.cards.findIndex(c=>c.id===cardId); if(fi<0) return;
+  const [card]=fromCol.cards.splice(fi,1);
+
+  // Find insertion index
+  let insertBefore=null;
+  for(const c of cards){
+    const r=c.getBoundingClientRect();
+    if(y<r.top+r.height/2){insertBefore=c;break;}
+  }
+  if(insertBefore){
+    const ti=toCol.cards.findIndex(c=>c.id===insertBefore.dataset.cardId);
+    toCol.cards.splice(ti,0,card);
+  } else {
+    toCol.cards.push(card);
+  }
+  dirty(); render();
+}
+
+function clearDI(){
+  document.querySelectorAll('.dhi-before,.dhi-after,.drop-hi').forEach(el=>el.classList.remove('dhi-before','dhi-after','drop-hi'));
+}
+
+// ── Finders ───────────────────────────────────────────────────
+function findCol(id) { return S.columns.find(c=>c.id===id); }
+function findCard(id) {
+  for(const col of S.columns){ const card=col.cards.find(c=>c.id===id); if(card) return {col,card}; }
+  return {col:null,card:null};
+}
+
+// ── Utils ─────────────────────────────────────────────────────
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function toast(msg){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(()=>el.classList.remove('show'),2600); }
+
+// ── Boot ──────────────────────────────────────────────────────
+(async()=>{
+  const hadLS = lsLoad(); // true = localStorage had data
+  if (!hadLS) S = mkDefault();
+  render();
+  document.getElementById('btitle').textContent = '🗂 ' + S.title;
+  setStatus('ss-ok', hadLS ? '✓ Loaded' : '✓ Ready');
+  setHFile(null);
+  // Try to silently reconnect to linked file.
+  // If localStorage was empty, load FROM the file instead of writing to it.
+  tryAutoLink(!hadLS);
+})();
+</script>
+</body>
+</html>
