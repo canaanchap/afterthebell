@@ -53,6 +53,87 @@
       "color": "#64748b",
       "cards": [
         {
+          "id": "mpofwlqifr2h",
+          "text": "basic login system",
+          "label": null,
+          "status": 0,
+          "progress": 0,
+          "subtasks": [
+            {
+              "id": "mpog2pfw1l89",
+              "text": "status for players",
+              "done": false,
+              "note": ""
+            },
+            {
+              "id": "mpofzpwxm99k",
+              "text": "prompt for name",
+              "done": false,
+              "note": ""
+            },
+            {
+              "id": "mpog2hsit42z",
+              "text": "\"who\" command for list of all connected players",
+              "done": false,
+              "note": ""
+            }
+          ],
+          "note": ""
+        },
+        {
+          "id": "mpog0b56cn8e",
+          "text": "advanced login system (login 2.0)",
+          "label": null,
+          "status": 0,
+          "progress": 0,
+          "subtasks": [
+            {
+              "id": "mpog53xyh2gl",
+              "text": "prompt: \"char\" or \"create\"",
+              "done": false,
+              "note": ""
+            },
+            {
+              "id": "mpogb7mokba9",
+              "text": "create password function",
+              "done": false,
+              "note": ""
+            },
+            {
+              "id": "mpog0optr935",
+              "text": "register email address (for recovery)",
+              "done": false,
+              "note": "used for recovery; to come later"
+            },
+            {
+              "id": "mpog0t4jtkg7",
+              "text": "character file creation and saving",
+              "done": false,
+              "note": ""
+            },
+            {
+              "id": "mpoh61q19z8y",
+              "text": "login screen (login, delete, disconnect)",
+              "done": false,
+              "note": ""
+            },
+            {
+              "id": "mpoh6w2t8ctz",
+              "text": "character file deletion",
+              "done": false,
+              "note": ""
+            }
+          ],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "mpofv509g3ve",
+      "name": "next up",
+      "color": "#6c63ff",
+      "cards": [
+        {
           "id": "mpofwivy9bqj",
           "text": "basic engine",
           "label": null,
@@ -62,85 +143,25 @@
             {
               "id": "mpofwz9uoyso",
               "text": "start up and listen",
-              "done": false
+              "done": false,
+              "note": ""
             },
             {
               "id": "mpofx644dwt6",
               "text": "accept incoming connections",
-              "done": false
+              "done": false,
+              "note": ""
             },
             {
               "id": "mpofx9wwejmv",
               "text": "handle disconnections",
-              "done": false
+              "done": false,
+              "note": ""
             }
-          ]
-        },
-        {
-          "id": "mpofwlqifr2h",
-          "text": "basic login system",
-          "label": null,
-          "status": 0,
-          "progress": 0,
-          "subtasks": [
-            {
-              "id": "mpofzpwxm99k",
-              "text": "prompt for name",
-              "done": false
-            },
-            {
-              "id": "mpog2hsit42z",
-              "text": "\"who\" command for list of all connected players",
-              "done": false
-            },
-            {
-              "id": "mpog2pfw1l89",
-              "text": "status for players",
-              "done": false
-            }
-          ]
-        },
-        {
-          "id": "mpog0b56cn8e",
-          "text": "advanced login system",
-          "label": null,
-          "status": 0,
-          "progress": 0,
-          "subtasks": [
-            {
-              "id": "mpog0jfrxcze",
-              "text": "login with character name",
-              "done": false
-            },
-            {
-              "id": "mpog0optr935",
-              "text": "register email address (for recovery)",
-              "done": false
-            },
-            {
-              "id": "mpog0t4jtkg7",
-              "text": "password prompt",
-              "done": false
-            },
-            {
-              "id": "mpog53xyh2gl",
-              "text": "simple create character (name)",
-              "done": false
-            },
-            {
-              "id": "mpogb7mokba9",
-              "text": "simple password prompt",
-              "done": false
-            }
-          ]
+          ],
+          "note": ""
         }
       ]
-    },
-    {
-      "id": "mpofv509g3ve",
-      "name": "next up",
-      "color": "#6c63ff",
-      "cards": []
     },
     {
       "id": "mpofv509e40r",
