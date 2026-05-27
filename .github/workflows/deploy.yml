@@ -1,4 +1,4 @@
-name: Deploy site (archive + belltower) to GitHub Pages
+name: Deploy site (belltower + project) to GitHub Pages
 
 on:
   push:
@@ -23,23 +23,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Install deps (Quartz)
-        working-directory: quartz
-        run: npm ci
-
-      - name: Build Quartz into public/archive
-        working-directory: quartz
-        run: npx quartz build -d ../content -o ../public/archive
-
       - name: Copy belltower into public/belltower
         run: |
           mkdir -p public/belltower
           rsync -a --delete belltower/ public/belltower/
+
+      - name: Copy project (kanban) into public/project
+        run: |
+          mkdir -p public/project
+          cp resonara-project/kanban.html public/project/index.html
+          cp resonara-project/*.board public/project/ 2>/dev/null || true
 
       - name: Root landing page
         run: |
@@ -59,20 +52,20 @@ jobs:
               <h1>After the Bell</h1>
               <p>
                 <a href="./belltower/">Belltower</a>
-                <a href="./archive/">Archive</a>
+                <a href="./project/">Project</a>
               </p>
             </body>
           </html>
           EOF
 
-      - name: Debug verify archive output exists
+      - name: Verify output
         run: |
           echo "---- public root ----"
           ls -la public
-          echo "---- public/archive ----"
-          ls -la public/archive || true
-          echo "---- index check ----"
-          test -f public/archive/index.html && echo "OK: public/archive/index.html exists" || (echo "MISSING: public/archive/index.html" && exit 1)
+          echo "---- public/belltower ----"
+          ls -la public/belltower || true
+          echo "---- public/project ----"
+          ls -la public/project || true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
