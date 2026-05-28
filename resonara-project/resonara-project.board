@@ -53,6 +53,201 @@
       "color": "#64748b",
       "cards": [
         {
+          "id": "mpog0b56cn8e",
+          "text": "advanced login system (login 2.0)",
+          "label": null,
+          "status": 0,
+          "progress": 0,
+          "subtasks": [
+            {
+              "id": "mpog53xyh2gl",
+              "text": "prompt: \"char\" or \"create\"",
+              "done": false,
+              "note": ""
+            },
+            {
+              "id": "mpogb7mokba9",
+              "text": "create password function",
+              "done": false,
+              "note": ""
+            },
+            {
+              "id": "mpog0optr935",
+              "text": "register email address",
+              "done": false,
+              "note": "used for recovery; to come later"
+            },
+            {
+              "id": "mpog0t4jtkg7",
+              "text": "character file creation and saving",
+              "done": false,
+              "note": ""
+            },
+            {
+              "id": "mpoh61q19z8y",
+              "text": "login screen",
+              "done": false,
+              "note": "- login\n- delete\n- disconnect"
+            },
+            {
+              "id": "mpoh6w2t8ctz",
+              "text": "character file deletion",
+              "done": false,
+              "note": ""
+            }
+          ],
+          "note": ""
+        },
+        {
+          "id": "mpohq8npalp0",
+          "text": "basic global chat system",
+          "label": null,
+          "status": null,
+          "progress": 0,
+          "subtasks": [
+            {
+              "id": "mpohqnqij692",
+              "text": "create first channel: \"chat\"",
+              "done": false,
+              "note": ""
+            },
+            {
+              "id": "mpohqsj25hs6",
+              "text": "create command structure",
+              "done": false,
+              "note": ""
+            },
+            {
+              "id": "mpohsbmdfztc",
+              "text": "create global broadcast function",
+              "done": false,
+              "note": ""
+            }
+          ],
+          "note": ""
+        },
+        {
+          "id": "mpoht3m9mmv6",
+          "text": "basic permission system",
+          "label": null,
+          "status": null,
+          "progress": 0,
+          "subtasks": [
+            {
+              "id": "mpohtd37o6wb",
+              "text": "add custom fields on character file for \"permissions\"",
+              "done": false,
+              "note": ""
+            },
+            {
+              "id": "mpohtlszbvk1",
+              "text": "first permission: \"builder\" y/n",
+              "done": false,
+              "note": ""
+            }
+          ],
+          "note": ""
+        },
+        {
+          "id": "mpohtqk90kbn",
+          "text": "basic room system",
+          "label": null,
+          "status": null,
+          "progress": 0,
+          "subtasks": [
+            {
+              "id": "mpohu3d5hf8u",
+              "text": "create room structure JSON schema",
+              "done": false,
+              "note": ""
+            },
+            {
+              "id": "mpohufmd92vb",
+              "text": "create engine read, parse, build on startup",
+              "done": false,
+              "note": ""
+            },
+            {
+              "id": "mpohvajfm8y3",
+              "text": "\"build mode\" (w/ check for builder permission)",
+              "done": false,
+              "note": ""
+            },
+            {
+              "id": "mpohvrwadp7e",
+              "text": "command: createroom <#>",
+              "done": false,
+              "note": "- check for existing room\n- allow for ranges: \"createroom <min> <max>\" or <max> <min>"
+            },
+            {
+              "id": "mpohwxq63ton",
+              "text": "command: createarea",
+              "done": false,
+              "note": "create area:\n`createarea area_name room_start room_end`\n\ni.e.:\n`createarea Blackspire 100 500`\n\ncheck that rooms aren't allocated to another area first, then create if not."
+            },
+            {
+              "id": "mpohz7ynwfol",
+              "text": "command: areamodify",
+              "done": false,
+              "note": ""
+            },
+            {
+              "id": "mpohzb485xku",
+              "text": "command: (n|e|s|w|u|d)link",
+              "done": false,
+              "note": "'wlink <room#>'"
+            },
+            {
+              "id": "mpormktn8xyi",
+              "text": "command: roomname",
+              "done": false,
+              "note": "`rname` or `roomname` with options:\n* `...set <value>` to set the room name\n* `...clear` to clear the room name (default to display nothing? is this the best approach?)"
+            },
+            {
+              "id": "mpormnew2ms6",
+              "text": "command: roomdesc",
+              "done": false,
+              "note": "`rdesk` or `roomdesc` with options:\n* `...set <value>` to set the room's description\n* `...clear` to clear the room name (default to display nothing\n* make sure that this "
+            }
+          ],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "mpofv509g3ve",
+      "name": "next up",
+      "color": "#6c63ff",
+      "cards": [
+        {
+          "id": "mpofwivy9bqj",
+          "text": "basic engine",
+          "label": null,
+          "status": 0,
+          "progress": 0,
+          "subtasks": [
+            {
+              "id": "mpofwz9uoyso",
+              "text": "start up and listen",
+              "done": false,
+              "note": "use telnet"
+            },
+            {
+              "id": "mpofx644dwt6",
+              "text": "accept incoming connections",
+              "done": false,
+              "note": ""
+            },
+            {
+              "id": "mpofx9wwejmv",
+              "text": "handle disconnections",
+              "done": false,
+              "note": ""
+            }
+          ],
+          "note": ""
+        },
+        {
           "id": "mpofwlqifr2h",
           "text": "basic login system",
           "label": null,
@@ -76,85 +271,10 @@
               "text": "\"who\" command for list of all connected players",
               "done": false,
               "note": ""
-            }
-          ],
-          "note": ""
-        },
-        {
-          "id": "mpog0b56cn8e",
-          "text": "advanced login system (login 2.0)",
-          "label": null,
-          "status": 0,
-          "progress": 0,
-          "subtasks": [
-            {
-              "id": "mpog53xyh2gl",
-              "text": "prompt: \"char\" or \"create\"",
-              "done": false,
-              "note": ""
             },
             {
-              "id": "mpogb7mokba9",
-              "text": "create password function",
-              "done": false,
-              "note": ""
-            },
-            {
-              "id": "mpog0optr935",
-              "text": "register email address (for recovery)",
-              "done": false,
-              "note": "used for recovery; to come later"
-            },
-            {
-              "id": "mpog0t4jtkg7",
-              "text": "character file creation and saving",
-              "done": false,
-              "note": ""
-            },
-            {
-              "id": "mpoh61q19z8y",
-              "text": "login screen (login, delete, disconnect)",
-              "done": false,
-              "note": ""
-            },
-            {
-              "id": "mpoh6w2t8ctz",
-              "text": "character file deletion",
-              "done": false,
-              "note": ""
-            }
-          ],
-          "note": ""
-        }
-      ]
-    },
-    {
-      "id": "mpofv509g3ve",
-      "name": "next up",
-      "color": "#6c63ff",
-      "cards": [
-        {
-          "id": "mpofwivy9bqj",
-          "text": "basic engine",
-          "label": null,
-          "status": 0,
-          "progress": 0,
-          "subtasks": [
-            {
-              "id": "mpofwz9uoyso",
-              "text": "start up and listen",
-              "done": false,
-              "note": ""
-            },
-            {
-              "id": "mpofx644dwt6",
-              "text": "accept incoming connections",
-              "done": false,
-              "note": ""
-            },
-            {
-              "id": "mpofx9wwejmv",
-              "text": "handle disconnections",
+              "id": "mpohskwebgfq",
+              "text": "implement \"quit\"",
               "done": false,
               "note": ""
             }
