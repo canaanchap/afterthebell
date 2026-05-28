@@ -3,7 +3,7 @@
 ## Links:
 
 ### Game Progress Planning/Kanban:
-[TBD](TBD)
+[https://canaanchap.github.io/afterthebell/project/](https://canaanchap.github.io/afterthebell/project/)
 
 ### The Belltower (Resonara Calendar):
 [https://canaanchap.github.io/afterthebell/belltower/](https://canaanchap.github.io/afterthebell/belltower/)
