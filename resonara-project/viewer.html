@@ -40,12 +40,33 @@ header{display:flex;align-items:center;gap:9px;padding:10px 16px;background:var(
 .card{background:var(--sur);border:1px solid var(--bdr);border-left:3px solid var(--acc);border-radius:var(--rs);padding:9px 10px 20px;position:relative;user-select:none;cursor:default}
 /* Card text */
 .ctext{font-size:.83rem;line-height:1.55;color:var(--txt);word-break:break-word;white-space:pre-wrap}
+/* Card note */
+.card-note{margin-top:7px;padding:7px 9px;background:var(--sur2);border-left:2px solid var(--bdr);border-radius:0 4px 4px 0;font-size:.77rem;line-height:1.6;color:var(--txt)}
+.card-note h1{font-size:.92rem;font-weight:700;margin:0 0 5px}
+.card-note h2{font-size:.82rem;font-weight:700;margin:7px 0 4px}
+.card-note h3{font-size:.77rem;font-weight:700;margin:5px 0 3px}
+.card-note p{margin-bottom:5px}.card-note p:last-child{margin-bottom:0}
+.card-note ul,.card-note ol{padding-left:14px;margin-bottom:5px}
+.card-note li{margin-bottom:1px}
+.card-note code{background:var(--bdr);padding:1px 4px;border-radius:3px;font-family:'SF Mono','Fira Mono',monospace;font-size:.72rem}
+.card-note blockquote{border-left:2px solid var(--acc);padding-left:8px;color:var(--mut);margin:4px 0;font-style:italic}
+.card-note strong{font-weight:700}.card-note em{font-style:italic}
+.card-note a{color:var(--acc)}
 /* Subtasks */
 .subtasks{margin-top:7px;display:flex;flex-direction:column;gap:3px}
 .stask{display:flex;align-items:flex-start;gap:5px}
 .stask input[type=checkbox]{width:13px;height:13px;margin-top:2px;flex-shrink:0;accent-color:var(--acc);pointer-events:none}
 .st-lbl{flex:1;font-size:.77rem;line-height:1.4;color:var(--txt);word-break:break-word;white-space:pre-wrap}
 .stask.done .st-lbl{text-decoration:line-through;opacity:.4}
+/* Subtask note */
+.st-note{margin:2px 0 4px 18px;padding:4px 8px;background:var(--sur2);border-left:2px solid var(--bdr);border-radius:0 3px 3px 0;font-size:.71rem;line-height:1.55;color:var(--mut)}
+.st-note p{margin-bottom:3px}.st-note p:last-child{margin-bottom:0}
+.st-note ul,.st-note ol{padding-left:12px;margin-bottom:3px}
+.st-note li{margin-bottom:1px}
+.st-note code{background:var(--bdr);padding:1px 3px;border-radius:3px;font-family:'SF Mono','Fira Mono',monospace;font-size:.67rem}
+.st-note blockquote{border-left:2px solid var(--acc);padding-left:7px;color:var(--mut);margin:3px 0;font-style:italic}
+.st-note strong{font-weight:700}.st-note em{font-style:italic}
+.st-note a{color:var(--acc)}
 /* Card footer */
 .cfoot{display:flex;align-items:center;gap:5px;margin-top:8px;flex-wrap:wrap}
 .clabel{display:inline-flex;align-items:center;font-size:.66rem;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap}
@@ -84,6 +105,30 @@ function esc(s) {
     .replace(/"/g, '&quot;');
 }
 
+function renderMd(raw) {
+  if (!raw || !raw.trim()) return '';
+  const inl = s => {
+    let r = s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    r = r.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    r = r.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    r = r.replace(/`(.+?)`/g, '<code>$1</code>');
+    r = r.replace(/\[(.+?)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    return r;
+  };
+  const out = []; let inUl = false, inOl = false;
+  const closeList = () => { if (inUl) { out.push('</ul>'); inUl = false; } if (inOl) { out.push('</ol>'); inOl = false; } };
+  for (const line of raw.split('\n')) {
+    const hm = line.match(/^(#{1,3})\s+(.+)$/); if (hm) { closeList(); out.push(`<h${hm[1].length}>${inl(hm[2])}</h${hm[1].length}>`); continue; }
+    const ulm = line.match(/^[-*]\s+(.+)$/); if (ulm) { if (!inUl) { closeList(); out.push('<ul>'); inUl = true; } out.push(`<li>${inl(ulm[1])}</li>`); continue; }
+    const olm = line.match(/^\d+\.\s+(.+)$/); if (olm) { if (!inOl) { closeList(); out.push('<ol>'); inOl = true; } out.push(`<li>${inl(olm[1])}</li>`); continue; }
+    const bq = line.match(/^>\s+(.+)$/); if (bq) { closeList(); out.push(`<blockquote>${inl(bq[1])}</blockquote>`); continue; }
+    if (!line.trim()) { closeList(); continue; }
+    closeList(); out.push(`<p>${inl(line)}</p>`);
+  }
+  closeList();
+  return out.join('');
+}
+
 function cardProgress(card, progressMode) {
   if (progressMode === 'auto' && card.subtasks && card.subtasks.length > 0) {
     return Math.round(card.subtasks.filter(s => s.done).length / card.subtasks.length * 100);
@@ -92,17 +137,21 @@ function cardProgress(card, progressMode) {
 }
 
 function renderCard(card, container, board) {
-  const label  = (card.label  != null) ? board.labels[card.label]     : null;
-  const status = (card.status != null) ? board.statuses[card.status]  : null;
+  const label  = (card.label  != null) ? board.labels[card.label]    : null;
+  const status = (card.status != null) ? board.statuses[card.status] : null;
   const pct    = cardProgress(card, board.progressMode);
-  const borderColor = label ? label.color : 'var(--acc)';
 
   const el = document.createElement('div');
   el.className = 'card';
-  el.style.borderLeftColor = borderColor;
+  el.style.borderLeftColor = label ? label.color : 'var(--acc)';
 
   let html = `<div class="ctext">${esc(card.text)}</div>`;
 
+  // Card-level note
+  const cardNoteMd = card.note && card.note.trim() ? renderMd(card.note) : '';
+  if (cardNoteMd) html += `<div class="card-note">${cardNoteMd}</div>`;
+
+  // Subtasks
   if (card.subtasks && card.subtasks.length > 0) {
     html += '<div class="subtasks">';
     for (const st of card.subtasks) {
@@ -110,10 +159,13 @@ function renderCard(card, container, board) {
         <input type="checkbox"${st.done ? ' checked' : ''} disabled>
         <span class="st-lbl">${esc(st.text)}</span>
       </div>`;
+      const stNoteMd = st.note && st.note.trim() ? renderMd(st.note) : '';
+      if (stNoteMd) html += `<div class="st-note">${stNoteMd}</div>`;
     }
     html += '</div>';
   }
 
+  // Footer: label, status, progress bar
   const footParts = [];
   if (label)  footParts.push(`<span class="clabel" style="background:${label.bg};color:${label.fg}">${esc(label.name)}</span>`);
   if (status) footParts.push(`<span class="cstatus">${esc(status)}</span>`);
@@ -139,8 +191,8 @@ function renderBoard(board) {
   boardEl.innerHTML = '';
 
   for (const col of board.columns) {
-    const totalPct = col.cards.reduce((sum, c) => sum + cardProgress(c, board.progressMode), 0);
-    const colPct   = col.cards.length > 0 ? Math.round(totalPct / col.cards.length) : 0;
+    const totalPct  = col.cards.reduce((sum, c) => sum + cardProgress(c, board.progressMode), 0);
+    const colPct    = col.cards.length > 0 ? Math.round(totalPct / col.cards.length) : 0;
     const doneCount = col.cards.filter(c => cardProgress(c, board.progressMode) === 100).length;
 
     const colEl = document.createElement('div');
