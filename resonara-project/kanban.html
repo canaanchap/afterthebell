@@ -89,6 +89,9 @@ header{display:flex;align-items:center;gap:9px;padding:10px 16px;background:var(
 .stask.st-src{opacity:.2}
 .stask.st-dhi-before{border-top:2px solid var(--acc)}
 .stask.st-dhi-after{border-bottom:2px solid var(--acc)}
+/* Note-open indicator */
+.stask.note-open{position:relative;background:rgba(108,99,255,.05);border-radius:4px}
+.stask.note-open::before{content:'▸';position:absolute;left:-9px;top:2px;font-size:.48rem;color:var(--acc);line-height:1;pointer-events:none;opacity:.8}
 .st-handle{color:var(--mut);cursor:grab;font-size:.72rem;padding:0 1px;opacity:0;transition:opacity .1s;flex-shrink:0;margin-top:3px;line-height:1}.stask:hover .st-handle{opacity:1}
 /* State button + hover mini menu */
 .st-state-wrap{position:relative;display:inline-flex;align-items:center;flex-shrink:0;margin-top:1px}
@@ -96,11 +99,13 @@ header{display:flex;align-items:center;gap:9px;padding:10px 16px;background:var(
 .st-state-btn{width:14px;height:14px;border:1.5px solid #c8d3e0;border-radius:3px;background:var(--sur);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:.6rem;color:#94a3b8;padding:0;line-height:1;font-family:inherit;transition:border-color .1s,color .1s,background .1s;flex-shrink:0}
 .st-state-btn[data-state="null"]{color:transparent}
 .st-state-btn[data-state="done"]{border-color:#86efac;color:#22c55e;background:#f0fdf4;font-weight:700}
+.st-state-btn[data-state="inprogress"]{font-size:.48rem}
 .st-mini-menu{position:absolute;left:calc(100% + 6px);top:50%;transform:translateY(-50%);display:flex;gap:1px;align-items:center;background:var(--sur);border:1px solid var(--bdr);border-radius:20px;padding:2px 4px;box-shadow:0 2px 12px rgba(0,0,0,.12);opacity:0;pointer-events:none;transition:opacity .12s;z-index:45;white-space:nowrap}
 .st-state-wrap:hover .st-mini-menu,.st-mini-menu:hover{opacity:1;pointer-events:all}
-.st-mm-btn{background:none;border:none;cursor:pointer;font-size:.72rem;padding:2px 6px;border-radius:14px;line-height:1;font-family:inherit;color:var(--mut);transition:background .1s,color .1s;white-space:nowrap}
+.st-mm-btn{background:none;border:none;cursor:pointer;font-size:.68rem;padding:2px 6px;border-radius:14px;line-height:1;font-family:inherit;color:var(--mut);transition:background .1s,color .1s;white-space:nowrap}
 .st-mm-btn:hover,.st-mm-btn.active{background:var(--sur2)}
-.st-mm-btn[data-target="inprogress"]:hover,.st-mm-btn[data-target="inprogress"].active{color:var(--acc)}
+.st-mm-btn[data-target="done"]:hover,.st-mm-btn[data-target="done"].active{color:#22c55e}
+.st-mm-btn[data-target="inprogress"]{font-size:.55rem}.st-mm-btn[data-target="inprogress"]:hover,.st-mm-btn[data-target="inprogress"].active{color:var(--acc)}
 .st-mm-btn[data-target="delegated"]:hover,.st-mm-btn[data-target="delegated"].active{color:#f97316}
 .st-mm-btn[data-target="outofscope"]:hover,.st-mm-btn[data-target="outofscope"].active{color:#ef4444}
 .st-mm-btn[data-target="later"]:hover,.st-mm-btn[data-target="later"].active{color:#64748b}
@@ -329,12 +334,13 @@ header{display:flex;align-items:center;gap:9px;padding:10px 16px;background:var(
 
 // ── Constants ──────────────────────────────────────────────────
 const COLORS = ['#6c63ff','#a78bfa','#38bdf8','#34d399','#fbbf24','#f97316','#ef4444','#ec4899','#64748b'];
-const ST_ICON = {null:'◻',done:'✓',inprogress:'●',delegated:'›',outofscope:'✕',later:'L'};
+const ST_ICON = {null:'◻',done:'✓',inprogress:'●',delegated:'›',outofscope:'✕',later:'/'};
 const ST_MENU = [
+  ['done',      '✓','Done'],
   ['inprogress','●','In progress'],
   ['delegated', '›','Delegated'],
   ['outofscope','✕','Did not do'],
-  ['later',     'L','Later'],
+  ['later',     '/','Later'],
 ];
 // Sort order: active work first, then done/delegated, later, outofscope last
 const ST_SORT = {null:0,inprogress:1,done:2,delegated:3,later:4,outofscope:5};
@@ -361,6 +367,7 @@ let stDrag     = null;   // subtask drag
 let noteCtx    = null;   // { id, type, obj, anchorEl }
 let noteMode   = 'view'; // 'view' | 'edit'
 let noteSaveTimer = null;
+let noteProgInitial = null; // track progress at note open time
 let newColColor = COLORS[0];
 let colDrag    = null;   // column drag state
 let activeFilter = null; // null | 'later'
@@ -579,7 +586,14 @@ function setRangeGradient(el,v){
 // ── Scroll preservation ────────────────────────────────────────
 function saveScroll(){ const m={}; document.querySelectorAll('.cards[data-col]').forEach(el=>{m[el.dataset.col]=el.scrollTop;}); return m; }
 function restoreScroll(m){ requestAnimationFrame(()=>document.querySelectorAll('.cards[data-col]').forEach(el=>{ if(m[el.dataset.col]!=null) el.scrollTop=m[el.dataset.col]; })); }
-function renderPS(){ const m=saveScroll(); render(); restoreScroll(m); } // render, preserving scroll
+function renderPS(){
+  const m=saveScroll(); render(); restoreScroll(m);
+  // Re-apply note-open highlight if note is open on a subtask
+  if(noteCtx&&noteCtx.type==='subtask'){
+    const stEl=document.querySelector(`.stask[data-st-id="${noteCtx.id}"]`);
+    if(stEl) stEl.classList.add('note-open');
+  }
+}
 
 // ── Render ─────────────────────────────────────────────────────
 function render(){
@@ -822,12 +836,19 @@ function openNote(id,type,anchorEl){
   if(type==='subtask'){
     progEl.classList.add('visible');
     const pv=obj.progress||0;
+    noteProgInitial=pv;
     progRange.value=pv;
     progPct.textContent=pv+'%';
     progPct.style.color=pv>0?progressColor(pv):'var(--mut)';
     setRangeGradient(progRange,pv);
+    // Highlight the subtask row
+    document.querySelectorAll('.stask.note-open').forEach(el=>el.classList.remove('note-open'));
+    const stEl=document.querySelector(`.stask[data-st-id="${id}"]`);
+    if(stEl) stEl.classList.add('note-open');
   } else {
     progEl.classList.remove('visible');
+    noteProgInitial=null;
+    document.querySelectorAll('.stask.note-open').forEach(el=>el.classList.remove('note-open'));
   }
 
   pop.style.display='flex';
@@ -869,10 +890,13 @@ function onNoteOutside(e){
 }
 
 function closeNote(){
+  const progChanged=noteCtx&&noteCtx.type==='subtask'&&noteCtx.obj.progress!==noteProgInitial;
   saveNoteNow();
   document.getElementById('npop').style.display='none';
   document.removeEventListener('pointerdown',onNoteOutside);
-  noteCtx=null;
+  document.querySelectorAll('.stask.note-open').forEach(el=>el.classList.remove('note-open'));
+  noteCtx=null; noteProgInitial=null;
+  if(progChanged) renderPS();
 }
 
 function saveNoteNow(){
@@ -908,13 +932,27 @@ document.getElementById('npop-prog-range').addEventListener('input',()=>{
   if(noteCtx&&noteCtx.type==='subtask'){
     noteCtx.obj.progress=v;
     clearTimeout(noteSaveTimer); noteSaveTimer=setTimeout(saveNoteNow,400);
-    // Update inline progress bar without re-render
+    // Update subtask progress bar inline
     const stEl=document.querySelector(`.stask[data-st-id="${noteCtx.id}"]`);
     if(stEl){
       const fill=stEl.querySelector('.st-prog-fill');
       const pctEl=stEl.querySelector('.st-prog-pct');
       if(fill){fill.style.width=v+'%';fill.style.backgroundColor=v>0?progressColor(v):'';}
       if(pctEl){pctEl.textContent=v>0?v+'%':'';pctEl.style.color=v>0?progressColor(v):'';}
+    }
+    // Update card-level progress bar inline
+    const cardEl=stEl?stEl.closest('.card'):null;
+    if(cardEl){
+      const{card:pc}=findCard(cardEl.dataset.cardId);
+      if(pc){
+        const cp=effProg(pc);
+        const pf=cardEl.querySelector('.prog-fill');
+        const pp=cardEl.querySelector('.prog-pct');
+        const cf=cardEl.querySelector('.cstrip-fill');
+        if(pf) pf.style.width=cp+'%';
+        if(pp) pp.textContent=cp+'%';
+        if(cf) cf.style.width=cp+'%';
+      }
     }
   }
 });
